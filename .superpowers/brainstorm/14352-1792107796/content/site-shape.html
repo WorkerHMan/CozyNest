@@ -1,0 +1,130 @@
+<h2>整站该长成什么形状？</h2>
+<p class="subtitle">第一个要定的事：给陌生人看的名片（作品集）和你自己的窝（博客 / 音乐 / 相册 / 各种记录）怎么住在一起。下面是四种完全不同的骨架，挑一个你最想住的。点卡片可以选中，选完在对话里跟我说说你的想法。</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mock-nav">CozyNest &nbsp;·&nbsp; 作品 / 文章 / 音乐 / 相册 / 更多</div>
+        <div class="mockup-body">
+          <div class="placeholder" style="height:30px">一句自我介绍 ＋ 代表作横排 3 张</div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <div class="placeholder" style="flex:1;height:24px">最近写的</div>
+            <div class="placeholder" style="flex:1;height:24px">最近拍的</div>
+            <div class="placeholder" style="flex:1;height:24px">在听的</div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;opacity:.65;text-align:center">↓ 越往里走，越像自己的房间</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · 一栋房子，公开度递进</h3>
+      <p>一个站。进门第一眼是给陌生人看的：作品集加一点最新的动静；往里走越来越私人，最后是你自己才常来的角落。不用登录，靠"位置"分深浅。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-body" style="display:flex;gap:6px">
+          <div style="flex:1.2">
+            <div class="label" style="margin-bottom:4px">门面</div>
+            <div class="placeholder" style="height:22px;margin-bottom:4px">大标题：我是谁</div>
+            <div class="placeholder" style="height:22px;margin-bottom:4px">项目一</div>
+            <div class="placeholder" style="height:22px;margin-bottom:4px">项目二</div>
+            <div class="placeholder" style="height:22px">项目三</div>
+            <div style="font-size:10px;opacity:.6;margin-top:6px">干净、克制、像简历</div>
+          </div>
+          <div style="display:flex;align-items:center;font-size:18px;opacity:.5">→</div>
+          <div style="flex:1">
+            <div class="label" style="margin-bottom:4px">内室（进来坐坐）</div>
+            <div class="placeholder" style="height:22px;margin-bottom:4px">今晚在听</div>
+            <div style="display:flex;gap:4px;margin-bottom:4px">
+              <div class="placeholder" style="flex:1;height:22px"></div>
+              <div class="placeholder" style="flex:1;height:22px"></div>
+            </div>
+            <div class="placeholder" style="height:22px">随手写的碎念</div>
+            <div style="font-size:10px;opacity:.6;margin-top:6px">暖、乱、有味道</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · 门面 ＋ 内室</h3>
+      <p>两个气质明确分开的世界：一进门是端得住的作品集，角落一个"进来坐坐"通往内室——音乐、相册、碎念都住在里面。访客可以只看门面就走，愿意的人才会推门。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-body">
+          <div style="display:flex;gap:4px;margin-bottom:8px">
+            <div class="placeholder" style="height:18px;width:46px">全部</div>
+            <div class="placeholder" style="height:18px;width:46px">作品</div>
+            <div class="placeholder" style="height:18px;width:46px">文章</div>
+            <div class="placeholder" style="height:18px;width:46px">照片</div>
+            <div class="placeholder" style="height:18px;width:46px">音乐</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px">
+            <div style="width:2px;background:currentColor;opacity:.25;align-self:stretch"></div>
+            <div style="flex:1">
+              <div style="font-size:10px;opacity:.6">2026 · 03</div>
+              <div class="placeholder" style="height:18px">写了一篇东西</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px">
+            <div style="width:2px;background:currentColor;opacity:.25;align-self:stretch"></div>
+            <div style="flex:1">
+              <div style="font-size:10px;opacity:.6">2026 · 02</div>
+              <div style="display:flex;gap:4px">
+                <div class="placeholder" style="flex:1;height:18px">照片 ×6</div>
+                <div class="placeholder" style="flex:1;height:18px">在听这张专辑</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start">
+            <div style="width:2px;background:currentColor;opacity:.25;align-self:stretch"></div>
+            <div style="flex:1">
+              <div style="font-size:10px;opacity:.6">2026 · 01</div>
+              <div class="placeholder" style="height:18px">去了一趟某地</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · 一条时间线</h3>
+      <p>整个站就是一条线：文章、照片、听过的歌、看过的书、去过的地方全混在时间上，作品集只是这条线上的一个筛选视图。最能体现"记忆是同一件事"，但作品集要藏一层筛选，陌生人可能第一眼看不到你的活儿。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mock-nav">CozyNest</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+            <div class="placeholder" style="height:34px">作品集</div>
+            <div class="placeholder" style="height:34px">博客</div>
+            <div class="placeholder" style="height:34px">音乐房</div>
+            <div class="placeholder" style="height:34px">相册墙</div>
+            <div class="placeholder" style="height:34px">书与电影</div>
+            <div class="placeholder" style="height:34px">旅行地图</div>
+            <div class="placeholder" style="height:34px">现在</div>
+            <div class="placeholder" style="height:34px">年度总结</div>
+            <div class="placeholder" style="height:34px">友链</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>D · 房间索引</h3>
+      <p>首页是一张房间地图，作品集、博客、音乐、相册、书影、地图……各是一间独立的房间，风格互不干扰。最好加功能，也最容易越加越像功能列表——所以要靠统一的视觉语言把它们黏成一栋房子。</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:18px">顺带说一句：这四个不是"选一个功能"，而是选一栋房子。选定之后，你列的那些功能（时间轴、现在页、书签摘录、书影、旅行地图、年度总结、友链、RSS、搜索、自建统计）都有地方落，只是落法不同。</p>

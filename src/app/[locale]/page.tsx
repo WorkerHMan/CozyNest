@@ -1,0 +1,24 @@
+import { FeaturedPosts } from "@/components/home/featured-posts"
+import { FeaturedProjects } from "@/components/home/featured-projects"
+import { Hero } from "@/components/home/hero"
+import { TechDirections } from "@/components/home/tech-directions"
+import { defaultLocale, getDictionary, isLocale } from "@/i18n"
+
+/**
+ * Home page. Fully static: every section reads from the dictionary and the
+ * placeholder data files, so nothing here blocks the prerender.
+ */
+export default async function HomePage(props: PageProps<"/[locale]">) {
+  const { locale } = await props.params
+  const resolved = isLocale(locale) ? locale : defaultLocale
+  const dict = getDictionary(resolved)
+
+  return (
+    <>
+      <Hero dict={dict} />
+      <TechDirections dict={dict} />
+      <FeaturedPosts dict={dict} locale={resolved} />
+      <FeaturedProjects dict={dict} locale={resolved} />
+    </>
+  )
+}
