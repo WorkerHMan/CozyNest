@@ -3,8 +3,8 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CanvasStage } from "@/components/common/canvas-stage"
+import { SceneCanvas } from "@/components/three/scene-canvas"
 import { Container } from "@/components/layout/container"
-import { articles } from "@/data/posts"
 import { projects } from "@/data/projects"
 import type { Dictionary } from "@/i18n"
 
@@ -12,9 +12,9 @@ import type { Dictionary } from "@/i18n"
  * Server Component. Everything here is static: no clock reads, no random
  * values, so it prerenders into the static shell as-is.
  */
-export function Hero({ dict }: { dict: Dictionary }) {
+export function Hero({ dict, postCount }: { dict: Dictionary; postCount: number }) {
   const stats = [
-    { value: articles.length, label: dict.home.stats.articles },
+    { value: postCount, label: dict.home.stats.articles },
     { value: projects.length, label: dict.home.stats.projects },
     { value: 5, label: dict.home.stats.notes },
   ]
@@ -85,8 +85,14 @@ export function Hero({ dict }: { dict: Dictionary }) {
             >
               <div className="bg-grid absolute inset-0 opacity-40" />
               <div className="absolute inset-0 grid place-items-center">
-                <div className="relative size-40 rounded-full bg-linear-to-br from-brand to-brand-2 opacity-80 blur-2xl motion-safe:animate-pulse" />
+                <div className="relative size-40 rounded-full bg-linear-to-br from-brand to-brand-2 opacity-60 blur-2xl" />
               </div>
+              {/* The stage now hosts the real WebGL scene. It is the single
+                  focal motion on this screen, per the design system's "at most
+                  1-2 animated elements per view" rule. The canvas is left
+                  unlabelled because CanvasStage already names the region, so a
+                  screen reader is not read the same thing twice. */}
+              <SceneCanvas />
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-border/60 bg-background/40 px-4 py-3 backdrop-blur-md">
                 <span className="eyebrow text-muted-foreground">
                   {dict.home.stageLabel}

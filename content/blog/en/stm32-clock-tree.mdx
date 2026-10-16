@@ -1,0 +1,57 @@
+---
+title: "STM32 clock tree, end to end: from HSE to peripheral clocks"
+summary: "How PLL multiplication, AHB/APB prescalers and peripheral clock enables relate, with a checklist you can follow while configuring."
+category: "STM32"
+tags: ["STM32", "Clock", "HAL"]
+publishedAt: "2026-01-18"
+readingMinutes: 12
+featured: true
+---
+
+The clock mistake I make most often is not a wrong multiplier — it is **forgetting to enable the bus clock of the peripheral I am about to use**. The register write silently does nothing and the code looks correct. This post takes the chain apart.
+
+## From crystal to system clock
+
+A typical 8 MHz crystal targeting 168 MHz:
+
+```c
+/* HSE 8MHz -> /M(8) -> 1MHz -> *N(336) -> 336MHz VCO -> /P(2) -> 168MHz SYSCLK */
+RCC_OscInitStruct.PLL.PLLM = 8;
+RCC_OscInitStruct.PLL.PLLN = 336;
+RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+RCC_OscInitStruct.PLL.PLLQ = 7;   /* 48MHz for USB / SDIO */
+```
+
+`PLLQ` is the 48 MHz branch. If USB refuses to enumerate, this value is usually why.
+
+## AHB and APB prescalers
+
+Two more dividers sit after SYSCLK. The trap: **when an APB prescaler is not 1, the timer clock is doubled automatically**.
+
+```c
+RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;   /* 168MHz */
+RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;     /* 42MHz  */
+RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;     /* 84MHz  */
+```
+
+So a timer on APB1 actually runs at 84 MHz, not 42 MHz. Get this wrong and every baud rate and PWM frequency drifts.
+
+## Peripheral clock checklist
+
+| Peripheral | Bus | Enable macro |
+|---|---|---|
+| GPIOA–K | AHB1 | `__HAL_RCC_GPIOA_CLK_ENABLE()` |
+| USART1 | APB2 | `__HAL_RCC_USART1_CLK_ENABLE()` |
+| USART2 | APB1 | `__HAL_RCC_USART2_CLK_ENABLE()` |
+| DMA1 | AHB1 | `__HAL_RCC_DMA1_CLK_ENABLE()` |
+| SYSCFG | APB2 | `__HAL_RCC_SYSCFG_CLK_ENABLE()` |
+
+The last row is the one people miss: external interrupt pin mapping lives in SYSCFG, so without it `EXTI` never fires.
+
+## Debugging order
+
+1. Confirm `HAL_RCC_OscConfig` returns `HAL_OK` — the HSE really started;
+2. Print `HAL_RCC_GetSysClockFreq()` instead of trusting your arithmetic;
+3. Only then walk the bus-enable list for the peripherals you use.
+
+> Do not reorder this. Debugging peripherals while the clock itself is down wastes time in the wrong place.

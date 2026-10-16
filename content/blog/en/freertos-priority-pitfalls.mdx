@@ -1,0 +1,58 @@
+---
+title: "Common FreeRTOS task-priority pitfalls"
+summary: "Priority inversion, blocking delays and stack overflow: using run-time stats and stack high-water marks to pin a problem to a task."
+category: "FreeRTOS"
+tags: ["FreeRTOS", "RTOS", "Debugging"]
+publishedAt: "2026-01-09"
+readingMinutes: 9
+featured: true
+---
+
+A wrong task priority does not fail the build. It makes the system hang under one particular load. These three are the ones I keep meeting.
+
+## 1. Blocking APIs inside an interrupt
+
+`vTaskDelay` only belongs in a task. In an ISR you need the `FromISR` variant, and you must ask whether a yield is required:
+
+```c
+void EXTI0_IRQHandler(void)
+{
+    BaseType_t higher = pdFALSE;
+    xSemaphoreGiveFromISR(g_evt, &higher);
+    portYIELD_FROM_ISR(higher);   /* omit this and the task waits for the next tick */
+}
+```
+
+Omitting `portYIELD_FROM_ISR` is the sneakiest of the three: everything works, the latency just becomes one tick, and real-time behaviour quietly disappears.
+
+## 2. Priority inversion
+
+While a low-priority task holds a mutex, a medium-priority task can starve the high-priority one indefinitely. The fix is priority inheritance, which mutexes have and semaphores do not:
+
+```c
+g_lock = xSemaphoreCreateMutex();   /* carries priority inheritance */
+/* do not substitute xSemaphoreCreateBinary() — no inheritance there */
+```
+
+## 3. Stack overflow
+
+Too small a stack does not crash immediately; it corrupts neighbouring memory. Use both defences:
+
+```c
+/* 1. turn on overflow checking */
+#define configCHECK_FOR_STACK_OVERFLOW 2
+/* 2. query each task's historical high-water mark */
+UBaseType_t wordsLeft = uxTaskGetStackHighWaterMark(taskHandle);
+```
+
+When the mark drops below a quarter of `configMINIMAL_STACK_SIZE`, add stack.
+
+## Where to look first
+
+| Symptom | Check first |
+|---|---|
+| Occasional lock-up | non-`FromISR` API called from an ISR |
+| High-priority task feels slow | semaphore used where a mutex was needed |
+| Reboots after a while | whether `vApplicationStackOverflowHook` fired |
+
+Enable `configUSE_TRACE_FACILITY` and `configGENERATE_RUN_TIME_STATS` and you can read each task's real CPU share — far faster than guessing.

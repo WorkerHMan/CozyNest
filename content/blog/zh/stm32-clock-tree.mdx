@@ -1,0 +1,57 @@
+---
+title: "STM32 时钟树梳理：从 HSE 到外设时钟"
+summary: "把 PLL 倍频、AHB/APB 分频与外设时钟使能的关系理清，并给出一份可直接对照的配置检查表。"
+category: "STM32"
+tags: ["STM32", "时钟", "HAL"]
+publishedAt: "2026-01-18"
+readingMinutes: 12
+featured: true
+---
+
+配置时钟最常踩的坑不是算错倍频，而是**忘了使能某条总线上的外设时钟**——寄存器写进去没反应，代码看起来完全正确。这篇把整条链路拆开。
+
+## 从晶振到系统时钟
+
+以常见的 8 MHz 外部晶振为例，目标 168 MHz 的典型路径是：
+
+```c
+/* HSE 8MHz -> /M(8) -> 1MHz -> *N(336) -> 336MHz VCO -> /P(2) -> 168MHz SYSCLK */
+RCC_OscInitStruct.PLL.PLLM = 8;
+RCC_OscInitStruct.PLL.PLLN = 336;
+RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+RCC_OscInitStruct.PLL.PLLQ = 7;   /* 48MHz，给 USB / SDIO */
+```
+
+`PLLQ` 决定了 48 MHz 那一支，USB 不能用就常常是因为这里算了别的值。
+
+## AHB / APB 分频
+
+SYSCLK 之后还要过两道分频。关键是 **APB 分频不为 1 时，定时器时钟会自动乘 2**：
+
+```c
+RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;   /* 168MHz */
+RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;     /* 42MHz  */
+RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;     /* 84MHz  */
+```
+
+于是挂在 APB1 的定时器实际跑在 84 MHz，而不是 42 MHz。这一条算错，波特率和 PWM 频率就全偏了。
+
+## 外设时钟使能检查表
+
+| 外设 | 总线 | 使能宏 |
+|---|---|---|
+| GPIOA~K | AHB1 | `__HAL_RCC_GPIOA_CLK_ENABLE()` |
+| USART1 | APB2 | `__HAL_RCC_USART1_CLK_ENABLE()` |
+| USART2 | APB1 | `__HAL_RCC_USART2_CLK_ENABLE()` |
+| DMA1 | AHB1 | `__HAL_RCC_DMA1_CLK_ENABLE()` |
+| SYSCFG | APB2 | `__HAL_RCC_SYSCFG_CLK_ENABLE()` |
+
+上表最后一行是最容易漏的：外部中断的引脚映射就配在 SYSCFG 里，不使能它，`EXTI` 永远不触发。
+
+## 复盘顺序
+
+1. 先确认 `HAL_RCC_OscConfig` 返回 `HAL_OK`，HSE 真的起振了；
+2. 再用 `HAL_RCC_GetSysClockFreq()` 打印实际频率，而不是相信自己算的数；
+3. 最后逐个核对用到外设的总线使能。
+
+> 顺序不能反。时钟本身没起来的时候排查外设，只会在错误的地方浪费时间。

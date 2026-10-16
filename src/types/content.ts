@@ -21,8 +21,11 @@ export interface Project {
   /** Product names are not translated. */
   name: string
   summary: Localized<string>
+  /** Short, concrete outcomes — what actually came out of it, not a feature list. */
+  highlights: Localized<readonly string[]>
   stack: readonly string[]
   status: "active" | "archived" | "planned"
   year: number
   featured?: boolean
+  repo?: string
 }

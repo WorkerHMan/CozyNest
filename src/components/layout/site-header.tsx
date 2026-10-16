@@ -3,8 +3,10 @@ import { Suspense } from "react"
 import { LocaleSwitcher } from "@/components/layout/locale-switcher"
 import { SiteNav } from "@/components/layout/site-nav"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
+import { SettingsPanel } from "@/components/settings/settings-panel"
 import { Container } from "@/components/layout/container"
-import { navItems, siteConfig } from "@/config/site"
+import { HeaderSurface } from "@/components/layout/header-surface"
+import { navItems, primaryNavItems, siteConfig } from "@/config/site"
 import { getDictionary, type Locale } from "@/i18n"
 
 /**
@@ -14,13 +16,17 @@ import { getDictionary, type Locale } from "@/i18n"
 export function SiteHeader({ locale }: { locale: Locale }) {
   const dict = getDictionary(locale)
 
-  const links = navItems.map((item) => ({
+  const toLink = (item: (typeof navItems)[number]) => ({
     href: item.href,
     label: dict.nav[item.key],
-  }))
+  })
+
+  // Four inline; the remaining sections live in the sheet and the footer.
+  const links = primaryNavItems.map(toLink)
+  const mobileLinks = navItems.map(toLink)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
+    <HeaderSurface>
       <Container className="flex h-16 items-center justify-between gap-4">
         <Link
           href="/"
@@ -40,6 +46,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         <Suspense fallback={<div aria-hidden className="hidden lg:block lg:h-8" />}>
           <SiteNav
             links={links}
+            mobileLinks={mobileLinks}
             navLabel={dict.footer.sections}
             triggerLabel={dict.actions.openMenu}
             sheetTitle={dict.footer.sections}
@@ -61,8 +68,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             }}
             buttonLabel={dict.actions.toggleTheme}
           />
+          <SettingsPanel labels={dict.settings} themeLabels={dict.actions} />
         </div>
       </Container>
-    </header>
+    </HeaderSurface>
   )
 }

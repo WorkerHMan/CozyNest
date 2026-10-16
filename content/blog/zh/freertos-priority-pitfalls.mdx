@@ -1,0 +1,58 @@
+---
+title: "FreeRTOS 任务优先级的几个常见坑"
+summary: "优先级反转、阻塞式延时与栈溢出：用运行时统计和栈水位把问题定位到具体任务。"
+category: "FreeRTOS"
+tags: ["FreeRTOS", "RTOS", "调试"]
+publishedAt: "2026-01-09"
+readingMinutes: 9
+featured: true
+---
+
+任务优先级写错不会编译报错，只会让系统在某个负载下突然卡住。下面三个是排查中最常见的。
+
+## 一、在中断里用了阻塞 API
+
+`vTaskDelay` 只能在任务里调用。中断上下文要用 `FromISR` 版本，并且把是否需要让出写成参数：
+
+```c
+void EXTI0_IRQHandler(void)
+{
+    BaseType_t higher = pdFALSE;
+    xSemaphoreGiveFromISR(g_evt, &higher);
+    portYIELD_FROM_ISR(higher);   /* 漏掉这句，高优先级任务要等到下一个 tick */
+}
+```
+
+漏掉 `portYIELD_FROM_ISR` 是最隐蔽的：功能正常，只是延迟变成一个 tick，实时性悄悄丢掉。
+
+## 二、优先级反转
+
+低优先级任务持有互斥量时，高优先级任务会被中优先级任务无限期插队。解决办法是给互斥量开优先级继承：
+
+```c
+g_lock = xSemaphoreCreateMutex();   /* 互斥量自带优先级继承 */
+/* 不要用 xSemaphoreCreateBinary() 代替——信号量没有继承机制 */
+```
+
+## 三、栈溢出
+
+栈太小不会立刻崩，而是踩坏相邻内存。两个手段一起用：
+
+```c
+/* 1. 开栈溢出检测 */
+#define configCHECK_FOR_STACK_OVERFLOW 2
+/* 2. 运行时查询每个任务的历史最低水位 */
+UBaseType_t wordsLeft = uxTaskGetStackHighWaterMark(taskHandle);
+```
+
+水位小于 `configMINIMAL_STACK_SIZE` 的四分之一时就该加栈了。
+
+## 排查顺序
+
+| 现象 | 先查什么 |
+|---|---|
+| 偶发卡死 | 中断里是否用了非 `FromISR` API |
+| 高优先级任务响应变慢 | 是否误用信号量代替互斥量 |
+| 跑一段时间后重启 | `vApplicationStackOverflowHook` 是否被触发 |
+
+把 `configUSE_TRACE_FACILITY` 和 `configGENERATE_RUN_TIME_STATS` 打开，能直接看到每个任务实际占用的 CPU 比例——比猜快得多。

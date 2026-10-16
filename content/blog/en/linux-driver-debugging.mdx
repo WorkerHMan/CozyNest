@@ -1,0 +1,61 @@
+---
+title: "A Linux driver debugging workflow: from dmesg to ftrace"
+summary: "Chaining dmesg, dynamic debug, ftrace and perf into one reusable workflow that covers both load failures and performance problems."
+category: "Linux"
+tags: ["Linux", "Driver", "ftrace"]
+publishedAt: "2025-12-21"
+readingMinutes: 15
+featured: true
+---
+
+Driver problems come in two shapes: **it will not load**, or **it loads and is slow**. Each has a clear entry point.
+
+## It will not load: start with dmesg
+
+When `insmod` fails it only says `Invalid argument`. The reason is in the ring buffer:
+
+```bash
+dmesg --level=err,warn --time-format=iso | tail -40
+```
+
+If there is no output at all, the module was rejected before `init` ran — check that vermagic matches the running kernel:
+
+```bash
+modinfo ./mydriver.ko | grep vermagic
+uname -r
+```
+
+## Turn on dynamic debug
+
+`pr_debug` and `dev_dbg` are compiled in but silent by default. Enable them per file or per line range without rebuilding:
+
+```bash
+echo 'file mydriver.c +p' > /sys/kernel/debug/dynamic_debug/control
+# or a single range
+echo 'file mydriver.c line 120-160 +p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+## It is slow: ftrace
+
+To find where the time goes, use function_graph:
+
+```bash
+cd /sys/kernel/debug/tracing
+echo function_graph > current_tracer
+echo 'my_ioctl' > set_ftrace_filter
+echo 1 > tracing_on
+./stress_test
+echo 0 > tracing_on
+cat trace | head -60
+```
+
+The output gives per-call timings, so you can see immediately whether it is `copy_from_user` or lock contention.
+
+## A reusable order
+
+1. `dmesg` for the error;
+2. `dynamic_debug` for that file's debug output;
+3. `ftrace` to locate the slow function;
+4. `perf top` to confirm it is not spinning on a lock.
+
+The first two fix "will not load"; the last two fix "too slow". Almost every driver problem I have hit falls inside those four steps.

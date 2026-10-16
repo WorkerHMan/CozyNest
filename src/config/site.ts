@@ -14,6 +14,12 @@ export const siteConfig = {
   /** Fixed rather than derived from the clock: reading the date during
    *  prerender is a build error under `cacheComponents`. */
   since: 2026,
+  /**
+   * Countdown target for the home page's time widget. Kept as a plain ISO date
+   * so nothing reads the clock until a Client Component mounts (reading it
+   * during prerender is a build error under `cacheComponents`).
+   */
+  countdownDate: "2027-02-06",
 } as const
 
 export interface NavItem {
@@ -22,25 +28,39 @@ export interface NavItem {
 }
 
 /**
- * Single source of truth for the site navigation. Every entry here is a route
- * that exists under `src/app/[locale]/`, so adding a section means adding the
- * route, one entry here, and one label pair in each dictionary.
+ * Every destination, in footer/sheet order.
+ *
+ * The site has far more sections than a top bar can hold, and an overloaded nav
+ * is an explicit anti-pattern, so this full list feeds the footer and the mobile
+ * sheet while `primaryNavItems` is what the desktop bar renders inline.
  */
 export const navItems: readonly NavItem[] = [
   { key: "home", href: "/" },
   { key: "blog", href: "/blog" },
-  { key: "knowledge", href: "/knowledge" },
   { key: "projects", href: "/projects" },
-  { key: "photos", href: "/photos" },
-  { key: "files", href: "/files" },
   { key: "tools", href: "/tools" },
+  { key: "knowledge", href: "/knowledge" },
+  { key: "resources", href: "/resources" },
+  { key: "photos", href: "/photos" },
+  { key: "books", href: "/library/books" },
+  { key: "music", href: "/library/music" },
+  { key: "video", href: "/library/video" },
+  { key: "files", href: "/files" },
   { key: "dashboard", href: "/dashboard" },
+  { key: "board", href: "/board" },
 ]
 
-/** The non-home sections, used to generate the placeholder pages. */
-export const moduleItems: readonly NavItem[] = navItems.filter(
-  (item) => item.href !== "/"
-)
+/**
+ * The four the header shows inline. Kept small deliberately: the earlier flat
+ * list of eight already needed the sheet below `lg`, and each extra item pushes
+ * the breakpoint further up.
+ */
+export const primaryNavItems: readonly NavItem[] = [
+  { key: "home", href: "/" },
+  { key: "blog", href: "/blog" },
+  { key: "projects", href: "/projects" },
+  { key: "tools", href: "/tools" },
+]
 
 export function isActiveHref(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/"

@@ -61,6 +61,10 @@
   /* Motion tokens: the design system's Complex tier (300-500ms micro-interaction,
      400-700ms staggered reveal). GSAP/3D work reads these instead of hardcoding. */
   --ease-brand: var(--motion-ease-out);
+  /* Elevation is indirected so the settings panel can swap the whole shadow
+     scale by flipping one attribute instead of restyling every component. */
+  --shadow-card: var(--elevation-card);
+  --shadow-raised: var(--elevation-raised);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -119,6 +123,12 @@
   --motion-duration-slow: 600ms;
   --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Serif option for the settings panel, with an explicit CJK serif so Chinese
+     body text does not silently fall back to a sans face. */
+  --font-serif-stack: ui-serif, Georgia, "Songti SC", "SimSun", "Noto Serif SC",
+    serif;
+  --elevation-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 2px 8px rgb(0 0 0 / 0.06);
+  --elevation-raised: 0 4px 12px rgb(0 0 0 / 0.08), 0 1px 3px rgb(0 0 0 / 0.06);
 }
 
 .dark {
@@ -255,4 +265,328 @@
   ::selection {
     background-color: color-mix(in oklab, var(--brand) 28%, transparent);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Settings layers (方案 A 的双层系统)
+   The settings panel writes data-* attributes onto <html> from a blocking
+   script, so every option applies before first paint and never flashes. Each
+   layer only overrides existing tokens — no component knows these exist.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Font: Sans (default) ⇄ Serif */
+[data-font="serif"] {
+  --font-sans: var(--font-serif-stack);
+  --font-heading: var(--font-serif-stack);
+}
+
+/* Elevation: shallow (default) ⇄ deep */
+[data-shadow="deep"] {
+  --elevation-card: 0 10px 30px rgb(0 0 0 / 0.16), 0 2px 6px rgb(0 0 0 / 0.1);
+  --elevation-raised: 0 24px 60px rgb(0 0 0 / 0.22);
+}
+.dark[data-shadow="deep"] {
+  --elevation-card: 0 10px 30px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+  --elevation-raised: 0 24px 64px rgb(0 0 0 / 0.6);
+}
+
+/*
+ * Image filter. The attribute lives on <html> so the blocking script can set it
+ * before paint, but the filter itself is applied to the shell element, never to
+ * <body> or <html>: `filter` makes its element a containing block, and Radix
+ * portals (sheets, dialogs) mount on <body>, so keeping the filter off those
+ * ancestors is what keeps them working.
+ */
+html[data-filter="sunset"] [data-shell] {
+  filter: sepia(0.28) saturate(1.25) hue-rotate(-12deg) brightness(1.02);
+}
+html[data-filter="darken"] [data-shell] {
+  filter: brightness(0.82);
+}
+html[data-filter="grayscale"] [data-shell] {
+  filter: grayscale(1);
+}
+
+/*
+ * Theme colour presets. Every pair below was measured with the WCAG formula:
+ * light presets take white text (5.02–7.10:1) and dark presets take ink
+ * (6.56–10.69:1); the brand also clears 4.5:1 as text on the page background
+ * (4.79–12.08:1) in both modes. Presets exist instead of a free colour picker
+ * precisely so a visitor cannot choose an unreadable combination.
+ */
+[data-theme-color="green"] {
+  --brand: oklch(0.527 0.137 150.1);
+  --brand-2: oklch(0.78 0.13 178);
+  --brand-foreground: oklch(1 0 0);
+  --primary: oklch(0.527 0.137 150.1);
+  --primary-foreground: oklch(1 0 0);
+}
+[data-theme-color="cyan"] {
+  --brand: oklch(0.52 0.094 223.1);
+  --brand-2: oklch(0.68 0.14 250);
+  --brand-foreground: oklch(1 0 0);
+  --primary: oklch(0.52 0.094 223.1);
+  --primary-foreground: oklch(1 0 0);
+}
+[data-theme-color="violet"] {
+  --brand: oklch(0.491 0.241 292.6);
+  --brand-2: oklch(0.72 0.17 340);
+  --brand-foreground: oklch(1 0 0);
+  --primary: oklch(0.491 0.241 292.6);
+  --primary-foreground: oklch(1 0 0);
+}
+[data-theme-color="amber"] {
+  --brand: oklch(0.555 0.146 49);
+  --brand-2: oklch(0.72 0.17 55);
+  --brand-foreground: oklch(1 0 0);
+  --primary: oklch(0.555 0.146 49);
+  --primary-foreground: oklch(1 0 0);
+}
+[data-theme-color="rose"] {
+  --brand: oklch(0.514 0.198 16.9);
+  --brand-2: oklch(0.72 0.16 300);
+  --brand-foreground: oklch(1 0 0);
+  --primary: oklch(0.514 0.198 16.9);
+  --primary-foreground: oklch(1 0 0);
+}
+[data-theme-color="blue"] {
+  --brand: oklch(0.488 0.217 264.4);
+  --brand-2: oklch(0.78 0.13 200);
+  --brand-foreground: oklch(1 0 0);
+  --primary: oklch(0.488 0.217 264.4);
+  --primary-foreground: oklch(1 0 0);
+}
+
+.dark[data-theme-color="green"] {
+  --brand: oklch(0.723 0.192 149.6);
+  --brand-2: oklch(0.8 0.14 178);
+  --brand-foreground: oklch(0.208 0.04 265.8);
+  --primary: oklch(0.723 0.192 149.6);
+  --primary-foreground: oklch(0.208 0.04 265.8);
+}
+.dark[data-theme-color="cyan"] {
+  --brand: oklch(0.797 0.134 211.5);
+  --brand-2: oklch(0.714 0.143 254.6);
+  --brand-foreground: oklch(0.208 0.04 265.8);
+  --primary: oklch(0.797 0.134 211.5);
+  --primary-foreground: oklch(0.208 0.04 265.8);
+}
+.dark[data-theme-color="violet"] {
+  --brand: oklch(0.709 0.159 293.5);
+  --brand-2: oklch(0.719 0.169 13.4);
+  --brand-foreground: oklch(0.208 0.04 265.8);
+  --primary: oklch(0.709 0.159 293.5);
+  --primary-foreground: oklch(0.208 0.04 265.8);
+}
+.dark[data-theme-color="amber"] {
+  --brand: oklch(0.837 0.164 84.4);
+  --brand-2: oklch(0.719 0.169 13.4);
+  --brand-foreground: oklch(0.208 0.04 265.8);
+  --primary: oklch(0.837 0.164 84.4);
+  --primary-foreground: oklch(0.208 0.04 265.8);
+}
+.dark[data-theme-color="rose"] {
+  --brand: oklch(0.719 0.169 13.4);
+  --brand-2: oklch(0.709 0.159 293.5);
+  --brand-foreground: oklch(0.208 0.04 265.8);
+  --primary: oklch(0.719 0.169 13.4);
+  --primary-foreground: oklch(0.208 0.04 265.8);
+}
+.dark[data-theme-color="blue"] {
+  --brand: oklch(0.714 0.143 254.6);
+  --brand-2: oklch(0.797 0.134 211.5);
+  --brand-foreground: oklch(0.208 0.04 265.8);
+  --primary: oklch(0.714 0.143 254.6);
+  --primary-foreground: oklch(0.208 0.04 265.8);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Article body
+   Typography for MDX articles plus a highlight.js theme. Both read the same
+   tokens as the rest of the site, so syntax colours follow the theme-colour
+   preset and the light/dark switch without a separate stylesheet.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --syntax-keyword: oklch(0.5 0.2 295);
+  --syntax-string: oklch(0.48 0.13 152);
+  --syntax-number: oklch(0.52 0.15 55);
+  --syntax-comment: oklch(0.52 0.02 258);
+  --syntax-function: oklch(0.47 0.17 255);
+  --syntax-type: oklch(0.5 0.13 205);
+}
+.dark {
+  --syntax-keyword: oklch(0.78 0.15 300);
+  --syntax-string: oklch(0.8 0.15 150);
+  --syntax-number: oklch(0.83 0.15 80);
+  --syntax-comment: oklch(0.64 0.02 258);
+  --syntax-function: oklch(0.75 0.13 250);
+  --syntax-type: oklch(0.8 0.12 200);
+}
+
+.mdx-body {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.mdx-body > * + * {
+  margin-top: 1.15rem;
+}
+
+.mdx-body h2 {
+  margin-top: 2.5rem;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.mdx-body h3 {
+  margin-top: 2rem;
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.mdx-body p,
+.mdx-body li {
+  text-wrap: pretty;
+}
+
+.mdx-body a {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: 2px;
+}
+
+.mdx-body a:hover {
+  color: var(--brand-2);
+}
+
+.mdx-body ul,
+.mdx-body ol {
+  padding-left: 1.35rem;
+}
+
+.mdx-body ul {
+  list-style: disc;
+}
+
+.mdx-body ol {
+  list-style: decimal;
+}
+
+.mdx-body li + li {
+  margin-top: 0.4rem;
+}
+
+.mdx-body blockquote {
+  border-left: 3px solid var(--brand);
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+}
+
+.mdx-body hr {
+  border-color: var(--border);
+}
+
+/* Tables scroll rather than overflow the article column. */
+.mdx-body table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.mdx-body th,
+.mdx-body td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.mdx-body thead th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+.mdx-body pre {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  padding: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.mdx-body code {
+  font-family: var(--font-mono);
+}
+
+.mdx-body :not(pre) > code {
+  border-radius: 0.3rem;
+  background: var(--muted);
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+}
+
+.mdx-body pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* highlight.js token theme */
+.mdx-body .hljs-comment,
+.mdx-body .hljs-quote {
+  color: var(--syntax-comment);
+  font-style: italic;
+}
+.mdx-body .hljs-keyword,
+.mdx-body .hljs-selector-tag,
+.mdx-body .hljs-literal {
+  color: var(--syntax-keyword);
+}
+.mdx-body .hljs-string,
+.mdx-body .hljs-regexp,
+.mdx-body .hljs-addition {
+  color: var(--syntax-string);
+}
+.mdx-body .hljs-number,
+.mdx-body .hljs-symbol,
+.mdx-body .hljs-bullet {
+  color: var(--syntax-number);
+}
+.mdx-body .hljs-title,
+.mdx-body .hljs-section,
+.mdx-body .hljs-name,
+.mdx-body .hljs-title.function_ {
+  color: var(--syntax-function);
+}
+.mdx-body .hljs-type,
+.mdx-body .hljs-class .hljs-title,
+.mdx-body .hljs-built_in,
+.mdx-body .hljs-attr,
+.mdx-body .hljs-attribute,
+.mdx-body .hljs-variable,
+.mdx-body .hljs-template-variable {
+  color: var(--syntax-type);
+}
+.mdx-body .hljs-meta,
+.mdx-body .hljs-doctag {
+  color: var(--muted-foreground);
+}
+.mdx-body .hljs-deletion {
+  color: var(--destructive);
+}
+.mdx-body .hljs-emphasis {
+  font-style: italic;
+}
+.mdx-body .hljs-strong {
+  font-weight: 600;
 }

@@ -22,7 +22,10 @@ export interface SiteNavLink {
 }
 
 interface SiteNavProps {
+  /** The few shown inline in the header. */
   links: readonly SiteNavLink[]
+  /** Every destination, listed in the mobile sheet. */
+  mobileLinks: readonly SiteNavLink[]
   /** Accessible name for the nav landmarks. */
   navLabel: string
   /** Accessible name for the mobile menu trigger. */
@@ -53,6 +56,7 @@ const focusRing =
 
 export function SiteNav({
   links,
+  mobileLinks,
   navLabel,
   triggerLabel,
   sheetTitle,
@@ -126,7 +130,7 @@ export function SiteNav({
             </SheetHeader>
             {/* gap-2 provides the 8px minimum spacing between adjacent tap targets. */}
             <nav aria-label={navLabel} className="flex flex-col gap-2 p-4">
-              {links.map((link) => {
+              {mobileLinks.map((link) => {
                 const active = isActiveHref(current, link.href)
                 return (
                   <SheetClose key={link.href} asChild>

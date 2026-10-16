@@ -1,0 +1,61 @@
+---
+title: "Linux 驱动调试工作流：从 dmesg 到 ftrace"
+summary: "把 dmesg、动态调试、ftrace 与 perf 串成一条可复用的排查链路，覆盖加载失败与性能问题。"
+category: "Linux"
+tags: ["Linux", "驱动", "ftrace"]
+publishedAt: "2025-12-21"
+readingMinutes: 15
+featured: true
+---
+
+驱动出问题只有两类：**加载不起来**，或者**跑起来慢**。两类各有明确的入口。
+
+## 加载失败：先看 dmesg
+
+`insmod` 失败时它自己只说一句 `Invalid argument`，真正的原因在 ring buffer 里：
+
+```bash
+dmesg --level=err,warn --time-format=iso | tail -40
+```
+
+如果连一条日志都没有，说明模块在 `init` 之前就被拒绝了——检查 vermagic 是否和当前内核匹配：
+
+```bash
+modinfo ./mydriver.ko | grep vermagic
+uname -r
+```
+
+## 打开动态调试
+
+代码里写好的 `pr_debug` / `dev_dbg` 默认不输出。按文件或按行打开，不必重新编译：
+
+```bash
+echo 'file mydriver.c +p' > /sys/kernel/debug/dynamic_debug/control
+# 或者只打开某一段
+echo 'file mydriver.c line 120-160 +p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+## 性能问题：ftrace
+
+想知道时间花在哪个函数上，用 function_graph：
+
+```bash
+cd /sys/kernel/debug/tracing
+echo function_graph > current_tracer
+echo 'my_ioctl' > set_ftrace_filter
+echo 1 > tracing_on
+./stress_test
+echo 0 > tracing_on
+cat trace | head -60
+```
+
+输出会给出每个子调用的耗时，一眼就能看到是 `copy_from_user` 还是锁竞争。
+
+## 一段可复用的顺序
+
+1. `dmesg` 找错误；
+2. `dynamic_debug` 打开该文件的调试输出；
+3. `ftrace` 定位耗时函数；
+4. `perf top` 确认是不是在打转自旋锁。
+
+前两步解决"起不来"，后两步解决"太慢"。绝大多数驱动问题都落在这四步之内。
