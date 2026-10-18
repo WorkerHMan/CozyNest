@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
-import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google"
+import { JetBrains_Mono, Nunito } from "next/font/google"
 import { notFound } from "next/navigation"
 import { MeritCursor } from "@/components/common/merit-cursor"
 import { MusicDock } from "@/components/layout/music-dock"
+import { PaimonMascot } from "@/components/paimon/paimon-mascot"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { SiteHeader } from "@/components/layout/site-header"
 import { ThemeProvider } from "@/components/theme/theme-provider"
@@ -10,10 +11,20 @@ import { siteConfig } from "@/config/site"
 import { defaultLocale, getDictionary, isLocale, locales } from "@/i18n"
 import "../globals.css"
 
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
+/**
+ * Round and friendly, but still a *text* face: Nunito's terminals are rounded
+ * while the letterforms stay legible at 12–16px, so the same family can carry
+ * body copy and headings. Display-rounded faces (Baloo, Fredoka) look cuter on a
+ * hero but turn tiring in a paragraph.
+ *
+ * It is also the reason the Chinese fallbacks in globals.css are rounded too —
+ * one family cannot cover CJK without megabytes of webfont.
+ */
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 })
 
 const jetbrainsMono = JetBrains_Mono({
@@ -71,8 +82,28 @@ export default async function LocaleLayout({
       data-scroll-behavior="smooth"
       // next-themes writes the theme class here before hydration.
       suppressHydrationWarning
-      className={`${plexSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${nunito.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
+      {/*
+       * ZCOOL KuaiLe (站酷快乐体) — the Chinese face: round, chubby, hand-drawn,
+       * the "a child wrote this" look.
+       *
+       * Loaded as a stylesheet rather than through next/font on purpose: the
+       * family ships 93 unicode-range slices. next/font would download and
+       * self-host all of them, while a plain stylesheet lets the browser fetch
+       * only the slices the page actually renders — the difference between
+       * ~2 MB up front and a few tens of KB per page.
+       */}
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      {/* The no-page-custom-font rule points at `pages/_document.js`, which does
+          not exist in the App Router. This layout is the root, so the stylesheet
+          applies to every route rather than to one page. */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap"
+        precedence="default"
+      />
       <body className="flex min-h-full flex-col">
         <ThemeProvider
           attribute="class"
@@ -96,6 +127,9 @@ export default async function LocaleLayout({
           <MusicDock locale={locale} />
           {/* Wooden-fish cursor + the floating merit counter. */}
           <MeritCursor locale={locale} />
+          {/* The mascot, and the settings drawer it opens. Outside the page tree
+              so it survives navigation and can read the site settings store. */}
+          <PaimonMascot locale={locale} />
         </ThemeProvider>
       </body>
     </html>
