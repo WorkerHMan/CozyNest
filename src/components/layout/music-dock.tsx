@@ -4,7 +4,7 @@ import { Pause, Play, SkipBack, SkipForward } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSyncExternalStore } from "react"
 import { heroPlayer } from "@/config/hero-player"
-import { locales, type Locale } from "@/i18n"
+import type { Locale } from "@/i18n"
 import {
   getServerSnapshot,
   getSnapshot,
@@ -14,19 +14,8 @@ import {
   toggle,
   trackAt,
 } from "@/lib/audio-store"
+import { toPublicPath } from "@/lib/path"
 import { cn } from "@/lib/utils"
-
-const localePrefix = new RegExp(`^/(${locales.join("|")})(?=/|$)`)
-
-/**
- * `usePathname` reports the internal route (`/zh/blog`) while prerendering and
- * the browser URL (`/blog`) on the client, because proxy.ts rewrites between
- * them. Normalising makes the home check agree and avoids a hydration mismatch.
- */
-function toPublicPath(pathname: string): string {
-  const stripped = pathname.replace(localePrefix, "")
-  return stripped === "" ? "/" : stripped
-}
 
 /**
  * Bottom-left dock for the music, shown on every page except the cover.

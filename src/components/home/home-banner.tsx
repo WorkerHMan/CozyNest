@@ -12,6 +12,12 @@ import {
   type KeyboardEvent,
 } from "react"
 import { HeroPlayer } from "@/components/home/hero-player"
+import {
+  getServerSnapshot as getSettingsServerSnapshot,
+  getSnapshot as getSettingsSnapshot,
+  subscribe as subscribeSettings,
+  update as updateSettings,
+} from "@/lib/site-settings"
 import { Container } from "@/components/layout/container"
 import { homeBanner } from "@/config/home-banner"
 import type { Dictionary, Locale } from "@/i18n"
@@ -157,8 +163,17 @@ export function HomeBanner({ dict, locale }: { dict: Dictionary; locale: Locale 
    *  does not always open on the same one. */
   const [mottoIndex, setMottoIndex] = useState(-1)
   const mottoRef = useRef(-1)
-  /** The visitor's intent: rotation on or off. */
-  const [rotating, setRotating] = useState(true)
+  /**
+   * Autoplay is a *site setting*, not local state: the same switch lives in the
+   * settings drawer, so both surfaces must read the one store or they would
+   * disagree. `engaged` stays local — it is the session-only "the visitor took
+   * over" hold, set by the arrows, and must not persist.
+   */
+  const { carouselAutoplay } = useSyncExternalStore(
+    subscribeSettings,
+    getSettingsSnapshot,
+    getSettingsServerSnapshot
+  )
   /** Pointer or keyboard focus inside the cover. */
   const [engaged, setEngaged] = useState(false)
 
@@ -170,7 +185,8 @@ export function HomeBanner({ dict, locale }: { dict: Dictionary; locale: Locale 
   const hidden = useSyncExternalStore(subscribeHidden, getHidden, getHiddenOnServer)
 
   const showRotationControl = !reduceMotion && total > 1
-  const autoplay = rotating && showRotationControl && !engaged && !hidden
+  const rotationRunning = carouselAutoplay && showRotationControl && !engaged && !hidden
+  const autoplay = rotationRunning
 
   /**
    * Every visit starts on the cover.
@@ -225,7 +241,9 @@ export function HomeBanner({ dict, locale }: { dict: Dictionary; locale: Locale 
   const step = useCallback(
     (delta: number) => {
       setIndex((current) => (current + delta + total) % total)
-      setRotating(false)
+      // Session-only hold: picking a slide stops the rotation now, but it must
+      // not switch the setting off for future visits.
+      setEngaged(true)
     },
     [total]
   )
@@ -403,17 +421,26 @@ export function HomeBanner({ dict, locale }: { dict: Dictionary; locale: Locale 
               {showRotationControl ? (
                 <button
                   type="button"
-                  onClick={() => setRotating((value) => !value)}
+                  onClick={() => {
+                    if (rotationRunning) {
+                      updateSettings({ carouselAutoplay: false })
+                      return
+                    }
+                    // Starting again also releases the session hold, otherwise
+                    // `engaged` would keep it stopped and the button would lie.
+                    setEngaged(false)
+                    updateSettings({ carouselAutoplay: true })
+                  }}
                   aria-label={
-                    rotating ? labels.pauseRotation[locale] : labels.startRotation[locale]
+                    rotationRunning ? labels.pauseRotation[locale] : labels.startRotation[locale]
                   }
-                  aria-pressed={rotating}
+                  aria-pressed={rotationRunning}
                   className={cn(
                     "absolute right-4 bottom-5 z-10 grid size-10 place-items-center rounded-full border border-border-strong bg-background/80 text-muted-foreground hover:text-foreground sm:right-6",
                     controlRing
                   )}
                 >
-                  {rotating ? (
+                  {rotationRunning ? (
                     <Pause aria-hidden className="size-3.5" />
                   ) : (
                     <Play aria-hidden className="size-3.5" />
