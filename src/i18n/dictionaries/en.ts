@@ -9,12 +9,13 @@ export const en: Dictionary = {
   nav: {
     home: "Home",
     blog: "Blog",
-    knowledge: "Knowledge",
-    projects: "Projects",
+    projects: "Portfolio",
+    music: "Music",
     photos: "Photos",
-    files: "Files",
+    video: "Video",
+    books: "Books",
     tools: "Tools",
-    dashboard: "Data",
+    games: "Games",
   },
   actions: {
     openMenu: "Open navigation menu",
@@ -87,14 +88,14 @@ export const en: Dictionary = {
   },
   modules: {
     blog: "Technical blog: Markdown/MDX authoring, categories and tags, full-text search and syntax highlighting.",
-    knowledge:
-      "Knowledge base: organised around C/C++, STM32, FreeRTOS, Linux and computer vision.",
     projects:
       "Project portfolio: descriptions, tech stacks, architecture diagrams and outcomes.",
-    photos: "Photo manager: albums, image preview, categories and search.",
-    files: "File manager: categorisation, upload, download and management.",
+    music: "Music manager: playlists, now playing and a browsable library.",
+    photos: "Photo manager: a wall of pictures organised by date and place.",
+    video: "Video manager: archives, thumbnails and playlists.",
+    books: "Reading: what's on the shelf, notes and highlighted passages.",
     tools: "Online tools: JSON formatting, Base64 encoding, timestamp conversion and more.",
-    dashboard: "Data visualisation: stat cards, trend charts and category breakdowns.",
+    games: "Games: small playable experiments.",
   },
   placeholder: {
     badge: "Planned",

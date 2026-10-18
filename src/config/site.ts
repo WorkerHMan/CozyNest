@@ -29,12 +29,13 @@ export interface NavItem {
 export const navItems: readonly NavItem[] = [
   { key: "home", href: "/" },
   { key: "blog", href: "/blog" },
-  { key: "knowledge", href: "/knowledge" },
   { key: "projects", href: "/projects" },
+  { key: "music", href: "/music" },
   { key: "photos", href: "/photos" },
-  { key: "files", href: "/files" },
+  { key: "video", href: "/video" },
+  { key: "books", href: "/books" },
   { key: "tools", href: "/tools" },
-  { key: "dashboard", href: "/dashboard" },
+  { key: "games", href: "/games" },
 ]
 
 /** The non-home sections, used to generate the placeholder pages. */

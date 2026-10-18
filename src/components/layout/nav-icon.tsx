@@ -1,11 +1,12 @@
 import {
   BookOpen,
   Camera,
-  FileText,
   FolderKanban,
+  Gamepad2,
   Home,
-  LayoutDashboard,
+  Music2,
   Newspaper,
+  Video,
   Wrench,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
@@ -38,12 +39,13 @@ import { cn } from "@/lib/utils"
 const navIcons: Record<NavKey, { Icon: LucideIcon; color: string }> = {
   home: { Icon: Home, color: "text-emerald-600 dark:text-emerald-400" },
   blog: { Icon: Newspaper, color: "text-amber-600 dark:text-amber-400" },
-  knowledge: { Icon: BookOpen, color: "text-violet-600 dark:text-violet-400" },
   projects: { Icon: FolderKanban, color: "text-blue-600 dark:text-blue-400" },
+  music: { Icon: Music2, color: "text-fuchsia-600 dark:text-fuchsia-400" },
   photos: { Icon: Camera, color: "text-rose-600 dark:text-rose-400" },
-  files: { Icon: FileText, color: "text-slate-500 dark:text-slate-400" },
+  video: { Icon: Video, color: "text-cyan-600 dark:text-cyan-400" },
+  books: { Icon: BookOpen, color: "text-violet-600 dark:text-violet-400" },
   tools: { Icon: Wrench, color: "text-orange-600 dark:text-orange-400" },
-  dashboard: { Icon: LayoutDashboard, color: "text-cyan-600 dark:text-cyan-400" },
+  games: { Icon: Gamepad2, color: "text-indigo-600 dark:text-indigo-400" },
 }
 
 export interface NavIconProps {
