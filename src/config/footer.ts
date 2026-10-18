@@ -1,0 +1,90 @@
+import type { Localized } from "@/types/content"
+
+/**
+ * Site-wide footer content.
+ *
+ * ## The filing number is a placeholder
+ *
+ * `filing` below is **not a real ICP filing**. A filing is issued per domain by
+ * MIIT and cannot be invented; publishing a made-up number is not just wrong, it
+ * is a compliance problem. It is here so the layout is complete, and the footer
+ * renders the row only when the value is non-empty — clear it, or replace it with
+ * the real number, before this site is deployed.
+ */
+export const footer = {
+  /** Replace with the real filing number, or `""` to hide the row. */
+  filing: {
+    label: "京ICP备00000000号-1",
+    href: "https://beian.miit.gov.cn/",
+  },
+
+  /** Shown in the bottom bar as 设计人 / Designed by. */
+  designer: "CozyNest",
+
+  /**
+   * Uptime counts from this day. A fixed date, never `new Date()` at module
+   * scope: the page is prerendered, and reading the clock during prerender is a
+   * build error under `cacheComponents`.
+   */
+  launchedOn: "2026-01-01",
+
+  /**
+   * Visitor counter: busuanzi (不蒜子), the zero-config counter used by most
+   * Chinese personal sites.
+   *
+   * It reports site UV, site PV and page PV — and **nothing daily**. There is no
+   * "today's visitors" figure to be had from a free counter: counting unique
+   * visitors per day requires storing a row per day, i.e. a backend. The footer
+   * therefore shows 本站访客 (UV) and 本站浏览 (PV) instead of inventing a
+   * "today" number.
+   *
+   * The script is loaded lazily and only mutates its own `<span>`s; if an ad
+   * blocker eats it, the spans keep their em dash and nothing breaks.
+   */
+  counter: {
+    script: "https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js",
+    /** Element ids the script writes into — must stay in sync with the footer. */
+    uvId: "busuanzi_value_site_uv",
+    pvId: "busuanzi_value_site_pv",
+  },
+
+  /** Third-party platforms.
+   *
+   * `qr` points at an image in `public/footer/`. The files that ship now are
+   * labelled placeholders — drop a real QR code over them and nothing else
+   * changes. Platforms without a QR are plain links.
+   */
+  platforms: [
+    { id: "github", href: "https://github.com/WorkerHMan", qr: null },
+    { id: "wechat", href: null, qr: "/footer/qr-wechat.png" },
+    { id: "qq", href: null, qr: "/footer/qr-qq.png" },
+    { id: "tip", href: null, qr: "/footer/qr-tip.png" },
+    { id: "friends", href: "/friends", qr: null },
+  ] as const,
+
+  labels: {
+    sections: { zh: "站点导航", en: "Sections" },
+    about: { zh: "关于本站", en: "About" },
+    platforms: { zh: "找到我", en: "Find me" },
+    siteInfo: { zh: "站点信息", en: "Site info" },
+    filing: { zh: "备案", en: "Filing" },
+    designer: { zh: "设计人", en: "Designed by" },
+    uptime: { zh: "已运行", en: "Up for" },
+    days: { zh: "天", en: "days" },
+    today: { zh: "今日访客", en: "Today" },
+    total: { zh: "本站访客", en: "Visitors" },
+    views: { zh: "本站浏览", en: "Page views" },
+    visitorsOff: {
+      zh: "由不蒜子统计，显示 — 说明脚本被拦截",
+      en: "Counted by busuanzi; an em dash means the script was blocked",
+    },
+    rights: { zh: "保留所有权利", en: "All rights reserved" },
+    scan: { zh: "扫码或长按识别", en: "Scan or long-press" },
+    qrPlaceholder: { zh: "二维码占位图", en: "Placeholder QR code" },
+    friends: { zh: "友链", en: "Friends" },
+    tip: { zh: "打赏", en: "Tip" },
+    wechat: { zh: "微信", en: "WeChat" },
+    qq: { zh: "QQ", en: "QQ" },
+    github: { zh: "GitHub", en: "GitHub" },
+  } satisfies Record<string, Localized<string>>,
+} as const
