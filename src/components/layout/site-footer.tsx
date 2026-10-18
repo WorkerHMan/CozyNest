@@ -1,5 +1,7 @@
+import Image from "next/image"
 import Link from "next/link"
 import { Container } from "@/components/layout/container"
+import { NavIcon } from "@/components/layout/nav-icon"
 import { navItems, siteConfig } from "@/config/site"
 import { getDictionary, type Locale } from "@/i18n"
 
@@ -14,9 +16,14 @@ export function SiteFooter({ locale }: { locale: Locale }) {
       <Container className="grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-3">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className="size-5 rounded-md bg-linear-to-br from-brand to-brand-2"
+            {/* Same mark as the header, so there is one logo rather than two
+                different placeholders. */}
+            <Image
+              src="/brand/logo.png"
+              alt=""
+              width={32}
+              height={32}
+              className="size-5 shrink-0"
             />
             <span className="font-heading text-base font-semibold">
               {siteConfig.name}
@@ -35,8 +42,9 @@ export function SiteFooter({ locale }: { locale: Locale }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground ${focusRing}`}
+                  className={`inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground ${focusRing}`}
                 >
+                  <NavIcon name={item.key} className="size-4 shrink-0" />
                   {dict.nav[item.key]}
                 </Link>
               </li>

@@ -3,6 +3,7 @@
 import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { NavIcon } from "@/components/layout/nav-icon"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -12,13 +13,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { isActiveHref } from "@/config/site"
+import { isActiveHref, type NavKey } from "@/config/site"
 import { isLocale } from "@/i18n/config"
 import { cn } from "@/lib/utils"
 
 export interface SiteNavLink {
   href: string
   label: string
+  /** Which icon to draw; the same key the dictionary uses. */
+  name: NavKey
 }
 
 interface SiteNavProps {
@@ -72,13 +75,18 @@ export function SiteNav({
               href={link.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-200",
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-200",
                 focusRing,
                 active
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               )}
             >
+              {/* Eight sections plus an icon each is ~90px more than the row has
+                  at `lg`, so the top-bar icons only appear from `xl` where the
+                  space exists. The mobile sheet and the footer have room at every
+                  width and always show them. */}
+              <NavIcon name={link.name} className="hidden size-3.5 shrink-0 xl:block" />
               {link.label}
             </Link>
           )
@@ -134,13 +142,14 @@ export function SiteNav({
                       href={link.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "rounded-md px-3 py-2.5 text-sm font-medium transition-colors duration-200",
+                        "flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium transition-colors duration-200",
                         focusRing,
                         active
                           ? "bg-muted text-foreground"
                           : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                       )}
                     >
+                      <NavIcon name={link.name} className="size-4 shrink-0" />
                       {link.label}
                     </Link>
                   </SheetClose>
