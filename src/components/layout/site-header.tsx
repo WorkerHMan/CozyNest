@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Suspense } from "react"
+import { AutoHideHeader } from "@/components/layout/auto-hide-header"
 import { LocaleSwitcher } from "@/components/layout/locale-switcher"
 import { SiteNav } from "@/components/layout/site-nav"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
@@ -8,8 +9,12 @@ import { navItems, siteConfig } from "@/config/site"
 import { getDictionary, type Locale } from "@/i18n"
 
 /**
- * Sticky site header. Server Component: it only assembles data from the
- * dictionary and hands it to the two client islands (nav and toggles).
+ * Site header. Server Component: it only assembles data from the dictionary and
+ * hands it to the client islands (the auto-hide shell, the nav and the toggles).
+ *
+ * The `<header>` element itself lives in `AutoHideHeader`, which is a Client
+ * Component because visibility depends on scroll position; the children below
+ * are still rendered on the server and passed through.
  */
 export function SiteHeader({ locale }: { locale: Locale }) {
   const dict = getDictionary(locale)
@@ -20,7 +25,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   }))
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
+    <AutoHideHeader>
       <Container className="flex h-16 items-center justify-between gap-4">
         <Link
           href="/"
@@ -63,6 +68,6 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           />
         </div>
       </Container>
-    </header>
+    </AutoHideHeader>
   )
 }
