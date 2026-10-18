@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google"
 import { notFound } from "next/navigation"
+import { MeritCursor } from "@/components/common/merit-cursor"
+import { MusicDock } from "@/components/layout/music-dock"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { SiteHeader } from "@/components/layout/site-header"
 import { ThemeProvider } from "@/components/theme/theme-provider"
@@ -89,6 +91,11 @@ export default async function LocaleLayout({
             {children}
           </main>
           <SiteFooter locale={locale} />
+          {/* Music keeps playing across pages: the audio element belongs to the
+              store, and this dock is just the control surface for it. */}
+          <MusicDock locale={locale} />
+          {/* Wooden-fish cursor + the floating merit counter. */}
+          <MeritCursor locale={locale} />
         </ThemeProvider>
       </body>
     </html>
