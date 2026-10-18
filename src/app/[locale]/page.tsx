@@ -1,6 +1,7 @@
 import { FeaturedPosts } from "@/components/home/featured-posts"
 import { FeaturedProjects } from "@/components/home/featured-projects"
 import { Hero } from "@/components/home/hero"
+import { HomeBanner } from "@/components/home/home-banner"
 import { TechDirections } from "@/components/home/tech-directions"
 import { defaultLocale, getDictionary, isLocale } from "@/i18n"
 
@@ -15,10 +16,18 @@ export default async function HomePage(props: PageProps<"/[locale]">) {
 
   return (
     <>
-      <Hero dict={dict} />
-      <TechDirections dict={dict} />
-      <FeaturedPosts dict={dict} locale={resolved} />
-      <FeaturedProjects dict={dict} locale={resolved} />
+      {/* Illustrated cover: the header is hidden up here and slides in on
+          scroll, and the cover's "enter" button jumps to #content below. */}
+      <HomeBanner dict={dict} locale={resolved} />
+      {/* The arrow scrolls to #content; the negative scroll margin carries the
+          landing a little further down, so the view starts on the Hero's heading
+          rather than on its top padding. */}
+      <div id="content" className="scroll-mt-[-5rem]">
+        <Hero dict={dict} />
+        <TechDirections dict={dict} />
+        <FeaturedPosts dict={dict} locale={resolved} />
+        <FeaturedProjects dict={dict} locale={resolved} />
+      </div>
     </>
   )
 }
