@@ -160,6 +160,10 @@ export function MeritCursor({ locale }: { locale: Locale }) {
       // Primary button only: right-click and drags should not rack up merit.
       if (event.button !== 0) return
 
+      // The mascot is its own interaction. Without this, poking it would also
+      // float a "+1" reward across the character at the same moment.
+      if (event.target instanceof Element && event.target.closest("[data-paimon]")) return
+
       // The knock: swap the cursor to the struck frame for a moment. A CSS
       // cursor cannot animate, so a second frame is the only way to show impact.
       // The timeout guarantees it stays visible even on a very fast click.
