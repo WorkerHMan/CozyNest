@@ -50,27 +50,34 @@ export const footer = {
 
   /** Third-party platforms.
    *
-   * `qr` points at an image in `public/footer/`. The files that ship now are
-   * labelled placeholders — drop a real QR code over them and nothing else
-   * changes. Platforms without a QR are plain links.
+   * GitHub points at the profile. The QR entries point at the **image itself**:
+   * clicking opens the picture at full size in a new tab, which is what the owner
+   * asked for — simpler than a popover, and it works on touch, where hover does
+   * not exist. Replace the files in `public/footer/` and nothing else changes.
    */
   platforms: [
-    { id: "github", href: "https://github.com/WorkerHMan", qr: null },
-    { id: "wechat", href: null, qr: "/footer/qr-wechat.png" },
-    { id: "qq", href: null, qr: "/footer/qr-qq.png" },
-    { id: "tip", href: null, qr: "/footer/qr-tip.png" },
-    { id: "friends", href: "/friends", qr: null },
+    { id: "github", href: "https://github.com/WorkerHMan", newTab: true },
+    { id: "wechat", href: "/footer/qr-wechat.jpg", newTab: true },
+    { id: "qq", href: "/footer/qr-qq.jpg", newTab: true },
+    { id: "tipWechat", href: "/footer/qr-tip1.jpg", newTab: true },
+    { id: "tipAlipay", href: "/footer/qr-tip2.jpg", newTab: true },
+    { id: "friends", href: "/friends", newTab: false },
   ] as const,
 
   labels: {
     sections: { zh: "站点导航", en: "Sections" },
     about: { zh: "关于本站", en: "About" },
-    platforms: { zh: "找到我", en: "Find me" },
+    platforms: { zh: "联系方式", en: "Contact" },
     siteInfo: { zh: "站点信息", en: "Site info" },
     filing: { zh: "备案", en: "Filing" },
     designer: { zh: "设计人", en: "Designed by" },
     uptime: { zh: "已运行", en: "Up for" },
-    days: { zh: "天", en: "days" },
+    /* Unit suffixes for the uptime counter. Chinese spells them out; English
+       uses the conventional short forms. */
+    days: { zh: "天", en: "d" },
+    hours: { zh: "小时", en: "h" },
+    minutes: { zh: "分钟", en: "m" },
+    seconds: { zh: "秒", en: "s" },
     today: { zh: "今日访客", en: "Today" },
     total: { zh: "本站访客", en: "Visitors" },
     views: { zh: "本站浏览", en: "Page views" },
@@ -79,10 +86,13 @@ export const footer = {
       en: "Counted by busuanzi; an em dash means the script was blocked",
     },
     rights: { zh: "保留所有权利", en: "All rights reserved" },
-    scan: { zh: "扫码或长按识别", en: "Scan or long-press" },
+    openImage: { zh: "打开图片", en: "Open the image" },
     qrPlaceholder: { zh: "二维码占位图", en: "Placeholder QR code" },
     friends: { zh: "友链", en: "Friends" },
-    tip: { zh: "打赏", en: "Tip" },
+    /* Two tip jars, not one: the codes belong to different payment apps, so they
+       get their own buttons and their own brand marks. */
+    tipWechat: { zh: "微信赞赏", en: "Tip via WeChat" },
+    tipAlipay: { zh: "支付宝赞赏", en: "Tip via Alipay" },
     wechat: { zh: "微信", en: "WeChat" },
     qq: { zh: "QQ", en: "QQ" },
     github: { zh: "GitHub", en: "GitHub" },

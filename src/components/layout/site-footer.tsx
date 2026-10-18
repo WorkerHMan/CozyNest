@@ -1,7 +1,7 @@
-import { Code2, HeartHandshake, Link2, MessageCircle, QrCode } from "lucide-react"
-import Image from "next/image"
+import { Link2 } from "lucide-react"
 import Link from "next/link"
 import Script from "next/script"
+import { siAlipay, siGithub, siQq, siWechat } from "simple-icons"
 
 import { FooterUptime } from "@/components/layout/footer-uptime"
 import { NavIcon } from "@/components/layout/nav-icon"
@@ -15,33 +15,45 @@ const focusRing =
   "rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 
 /**
- * Platform ids map to an icon; the QR platforms share a fallback.
- *
- * `Code2` stands in for GitHub: lucide dropped brand marks, and pulling a whole
- * icon pack in for one glyph is not worth it.
+ * Brand marks come from `simple-icons`, which ships the official paths. lucide
+ * dropped brand icons in v1, and redrawing a logo from memory produces something
+ * that looks almost-right — worse than a generic glyph.
  */
-const PLATFORM_ICONS = {
-  github: Code2,
-  wechat: MessageCircle,
-  qq: MessageCircle,
-  tip: HeartHandshake,
-  friends: Link2,
+const BRANDS = {
+  github: siGithub,
+  wechat: siWechat,
+  qq: siQq,
+  /**
+   * simple-icons has no WeChat Pay mark, so the tip button reuses the official
+   * WeChat bubble — the same green mark WeChat Pay's own poster carries.
+   */
+  tipWechat: siWechat,
+  tipAlipay: siAlipay,
 } as const
 
+/** Non-brand platforms are actions, so they keep the site's line-icon set. */
+const ACTION_ICONS = { friends: Link2 } as const
+
+function BrandMark({ id, className }: { id: keyof typeof BRANDS; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path d={BRANDS[id].path} fill="currentColor" />
+    </svg>
+  )
+}
+
 /**
- * The site-wide footer.
+ * The site-wide footer: four bands, in the order they are read.
  *
- * Three blocks on top — who this is, the sections, and where to find me — then a
- * single metadata bar underneath.
+ * 1. **站点导航** — where you can go.
+ * 2. **联系方式** — how to reach me. Six 44 px buttons; the image ones open the
+ *    poster in a new tab, because a hover popover is unreachable on touch.
+ * 3. **站点信息** — designer, uptime, visitor counts.
+ * 4. **版权声明** — the legal line.
  *
- * The QR codes reveal on hover **and** on focus, using `group-hover` and
- * `group-focus-within` rather than JavaScript: three QR images permanently on
- * screen would dominate the footer, and a hover-only reveal would be unreachable
- * from a keyboard.
- *
- * The visitor figures are `null` in the config. Rendering a plausible-looking
- * zero would be worse than rendering `—`: a made-up statistic is a lie the page
- * cannot walk back.
+ * Each band is one wrapping row rather than a grid column: nine sections in a
+ * grid meant two columns across five rows, which was the tall column that made
+ * the whole footer heavy.
  */
 export function SiteFooter({ locale }: { locale: Locale }) {
   const dict = getDictionary(locale)
@@ -49,141 +61,115 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
   return (
     <footer className="mt-auto border-t border-border/60 bg-muted/40">
-      <Container className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/brand/logo.png"
-              alt=""
-              width={32}
-              height={32}
-              className="size-5 shrink-0"
-            />
-            <span className="font-heading text-base font-semibold">{siteConfig.name}</span>
-          </div>
-          <p className="max-w-xs text-sm leading-relaxed text-pretty text-muted-foreground">
-            {dict.metadata.description}
-          </p>
-        </div>
-
-        <nav aria-label={labels.sections[locale]} className="space-y-3">
-          <h2 className="eyebrow text-muted-foreground">{labels.sections[locale]}</h2>
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground",
-                    focusRing
-                  )}
-                >
-                  <NavIcon name={item.key} className="size-4 shrink-0" />
-                  {dict.nav[item.key]}
-                </Link>
-              </li>
-            ))}
-          </ul>
+      <Container className="py-8">
+        {/* Band 1 — the nine sections, one wrapping row. */}
+        <nav
+          aria-label={labels.sections[locale]}
+          className="flex flex-wrap items-center gap-x-4 gap-y-1.5"
+        >
+          <span className="eyebrow text-muted-foreground">{labels.sections[locale]}</span>
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground",
+                focusRing
+              )}
+            >
+              <NavIcon name={item.key} className="size-4 shrink-0" />
+              {dict.nav[item.key]}
+            </Link>
+          ))}
         </nav>
 
-        <div className="space-y-3">
-          <h2 className="eyebrow text-muted-foreground">{labels.platforms[locale]}</h2>
-          <ul className="flex flex-wrap gap-2">
+        {/* Band 2 — how to reach me. */}
+        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/60 pt-4">
+          <span className="eyebrow text-muted-foreground">{labels.platforms[locale]}</span>
+          <ul className="flex flex-wrap items-center gap-3">
             {footer.platforms.map((platform) => {
-              const Icon = PLATFORM_ICONS[platform.id]
               const name = labels[platform.id][locale]
-              const shared = cn(
-                "grid size-11 place-items-center rounded-full border border-border/60 text-muted-foreground transition-colors duration-200 hover:border-brand/50 hover:text-foreground",
-                focusRing
-              )
-
-              if (platform.href) {
-                return (
-                  <li key={platform.id}>
-                    <Link
-                      href={platform.href}
-                      aria-label={name}
-                      title={name}
-                      className={shared}
-                      {...(platform.href.startsWith("http")
-                        ? { target: "_blank", rel: "noopener noreferrer" }
-                        : {})}
-                    >
-                      <Icon aria-hidden className="size-4" />
-                    </Link>
-                  </li>
-                )
-              }
+              const isImage = /\.(png|jpe?g|webp)$/i.test(platform.href)
+              const action = ACTION_ICONS[platform.id as keyof typeof ACTION_ICONS]
+              const brand = BRANDS[platform.id as keyof typeof BRANDS]
 
               return (
-                <li key={platform.id} className="group relative">
-                  <button
-                    type="button"
-                    aria-label={`${name} — ${labels.scan[locale]}`}
-                    className={cn(shared, "cursor-pointer")}
-                  >
-                    <Icon aria-hidden className="size-4" />
-                  </button>
-                  {/* Hover *and* focus-within: the same affordance must work
-                      from a keyboard, not just a mouse. */}
-                  <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden -translate-x-1/2 flex-col items-center gap-1 rounded-xl border border-border/60 bg-background/95 p-2 shadow-lg group-hover:flex group-focus-within:flex">
-                    {platform.qr ? (
-                      <Image
-                        src={platform.qr}
-                        alt={labels.qrPlaceholder[locale]}
-                        width={132}
-                        height={132}
-                        className="size-33 rounded-lg"
-                      />
-                    ) : (
-                      <span className="grid size-33 place-items-center">
-                        <QrCode aria-hidden className="size-6" />
-                      </span>
+                <li key={platform.id}>
+                  {/*
+                   * Same 16 px mark as the nav row, no pill around it — that is
+                   * what made these read as larger than the section icons.
+                   *
+                   * The `after:` layer widens the hit area to 32 px without
+                   * changing the visual size: 16 px alone would be below the
+                   * 24 px WCAG minimum for a pointer target.
+                   */}
+                  <Link
+                    href={platform.href}
+                    aria-label={isImage ? `${name} — ${labels.openImage[locale]}` : name}
+                    title={isImage ? `${name} — ${labels.openImage[locale]}` : name}
+                    className={cn(
+                      "relative grid size-4 place-items-center text-muted-foreground transition-colors duration-200 after:absolute after:-inset-2 after:content-[''] hover:text-foreground",
+                      focusRing
                     )}
-                    <span className="whitespace-nowrap font-mono text-[0.625rem] text-muted-foreground">
-                      {labels.scan[locale]}
-                    </span>
-                  </div>
+                    {...(platform.newTab
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                  >
+                    {brand ? (
+                      <BrandMark id={platform.id as keyof typeof BRANDS} className="size-4" />
+                    ) : action ? (
+                      (() => {
+                        const Icon = action
+                        return <Icon aria-hidden className="size-4" />
+                      })()
+                    ) : null}
+                  </Link>
                 </li>
               )
             })}
           </ul>
         </div>
 
-        <div className="space-y-3">
-          <h2 className="eyebrow text-muted-foreground">{labels.siteInfo[locale]}</h2>
-          <ul className="space-y-2 text-sm">
-            <li className="inline-flex items-baseline gap-1">
-              <span className="text-muted-foreground">{labels.designer[locale]}</span>
-              <span className="text-foreground">{footer.designer}</span>
-            </li>
-            <li>
-              <FooterUptime
-                since={footer.launchedOn}
-                label={labels.uptime[locale]}
-                unit={labels.days[locale]}
-              />
-            </li>
-            <li className="inline-flex items-baseline gap-1">
-              <span className="text-muted-foreground">{labels.total[locale]}</span>
-              <span id={footer.counter.uvId} className="font-mono text-foreground">
-                —
-              </span>
-            </li>
-            <li className="inline-flex items-baseline gap-1">
-              <span className="text-muted-foreground">{labels.views[locale]}</span>
-              <span id={footer.counter.pvId} className="font-mono text-foreground">
-                —
-              </span>
-            </li>
-            <li className="font-mono text-[0.625rem] text-muted-foreground">
-              {labels.visitorsOff[locale]}
-            </li>
-          </ul>
+        {/* Band 3 — site info, inline. */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border/60 pt-3 text-xs">
+          <span className="eyebrow text-muted-foreground">{labels.siteInfo[locale]}</span>
+          <span className="inline-flex items-baseline gap-1">
+            <span className="text-muted-foreground">{labels.designer[locale]}</span>
+            <span className="text-foreground">{footer.designer}</span>
+          </span>
+          <span aria-hidden className="text-border">·</span>
+          <FooterUptime
+            since={footer.launchedOn}
+            label={labels.uptime[locale]}
+            units={{
+              days: labels.days[locale],
+              hours: labels.hours[locale],
+              minutes: labels.minutes[locale],
+              seconds: labels.seconds[locale],
+            }}
+          />
+          <span aria-hidden className="text-border">·</span>
+          <span className="inline-flex items-baseline gap-1">
+            <span className="text-muted-foreground">{labels.total[locale]}</span>
+            <span id={footer.counter.uvId} className="font-mono text-foreground">
+              —
+            </span>
+          </span>
+          <span aria-hidden className="text-border">·</span>
+          <span className="inline-flex items-baseline gap-1">
+            <span className="text-muted-foreground">{labels.views[locale]}</span>
+            <span id={footer.counter.pvId} className="font-mono text-foreground">
+              —
+            </span>
+          </span>
+          <span className="font-mono text-[0.625rem] text-muted-foreground">
+            {labels.visitorsOff[locale]}
+          </span>
         </div>
       </Container>
 
-      <Container className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/60 py-6 text-xs text-muted-foreground">
+      {/* Band 4 — the legal line. */}
+      <Container className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-t border-border/60 py-4 text-xs text-muted-foreground">
         <p className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
           <span>
             © {siteConfig.since} {siteConfig.name}. {labels.rights[locale]}
