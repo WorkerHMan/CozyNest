@@ -31,15 +31,19 @@ const focusRing =
  *
  * ## When it appears
  *
- *  - **Home**: after scrolling past the cover, which carries its own panel.
- *  - **Inner pages**: after a short scroll.
- *  - **Never on `/music`**: that page is the player.
+ *  - **Home**: only once the cover is scrolled past, so the wallpaper is not
+ *    covered by controls. That is what `HOME_COVER_RATIO` measures.
+ *  - **Every other page**: immediately. There is no cover to get past.
+ *  - **Never on `/music`**: that page is the player itself.
  *
  * It does not require prior playback — the dock is a control surface, and
  * pressing play in it boots the engine.
  */
-const HOME_COVER_RATIO = 0.6
-const INNER_PAGE_THRESHOLD = 240
+/**
+ * The home page's cover is a full-viewport panel, so the dock waits until almost
+ * all of it is gone — "scrolled into the content", not "scrolled a little".
+ */
+const HOME_COVER_RATIO = 0.92
 
 function subscribeScroll(onChange: () => void) {
   window.addEventListener("scroll", onChange, { passive: true })
@@ -50,14 +54,18 @@ function subscribeScroll(onChange: () => void) {
   }
 }
 
-/** One reader per page type; both return a boolean, so snapshots stay stable. */
+/**
+ * One reader per page kind. Both return a boolean, so the snapshot stays stable
+ * between renders and `useSyncExternalStore` is happy.
+ */
 function makeReader(isHome: boolean) {
-  return () =>
-    window.scrollY >
-    (isHome ? window.innerHeight * HOME_COVER_RATIO : INNER_PAGE_THRESHOLD)
+  // Inner pages get the dock as soon as they are interactive; only the home page
+  // has a cover to get past first.
+  if (!isHome) return () => true
+  return () => window.scrollY > window.innerHeight * HOME_COVER_RATIO
 }
 
-const getScrolledOnServer = () => false
+const getVisibleOnServer = () => false
 
 export function MusicDock({ locale }: { locale: Locale }) {
   const pathname = usePathname()
@@ -68,14 +76,14 @@ export function MusicDock({ locale }: { locale: Locale }) {
   const isHome = path === "/"
   const isMusicPage = path === "/music" || path.startsWith("/music/")
 
-  const scrolled = useSyncExternalStore(
+  const visible = useSyncExternalStore(
     subscribeScroll,
     makeReader(isHome),
-    getScrolledOnServer
+    getVisibleOnServer
   )
 
   if (isMusicPage) return null
-  if (!scrolled) return null
+  if (!visible) return null
 
   const track = trackAt(index)
 
