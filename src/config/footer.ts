@@ -50,17 +50,15 @@ export const footer = {
 
   /** Third-party platforms.
    *
-   * GitHub points at the profile. The QR entries point at the **image itself**:
-   * clicking opens the picture at full size in a new tab, which is what the owner
-   * asked for — simpler than a popover, and it works on touch, where hover does
-   * not exist. Replace the files in `public/footer/` and nothing else changes.
+   * GitHub points at the profile and WeChat/QQ at their contact posters, which
+   * open full size in a new tab (a hover popover is unreachable on touch).
+   * 打赏 is a single link to `/rewards`, where both payment codes live.
    */
   platforms: [
     { id: "github", href: "https://github.com/WorkerHMan", newTab: true },
     { id: "wechat", href: "/footer/qr-wechat.jpg", newTab: true },
     { id: "qq", href: "/footer/qr-qq.jpg", newTab: true },
-    { id: "tipWechat", href: "/footer/qr-tip1.jpg", newTab: true },
-    { id: "tipAlipay", href: "/footer/qr-tip2.jpg", newTab: true },
+    { id: "tip", href: "/rewards", newTab: false },
     { id: "friends", href: "/friends", newTab: false },
   ] as const,
 
@@ -89,11 +87,9 @@ export const footer = {
     openImage: { zh: "打开图片", en: "Open the image" },
     qrPlaceholder: { zh: "二维码占位图", en: "Placeholder QR code" },
     friends: { zh: "友链", en: "Friends" },
-    /* Two tip jars, not one: the codes belong to different payment apps, so they
-       get their own buttons and their own brand marks. */
-    tipWechat: { zh: "微信赞赏", en: "Tip via WeChat" },
-    tipAlipay: { zh: "支付宝赞赏", en: "Tip via Alipay" },
-    wechat: { zh: "微信", en: "WeChat" },
+    tip: { zh: "打赏", en: "Sponsor" },
+    /* Platform names are proper nouns, so both locales spell them the same way. */
+    wechat: { zh: "WeChat", en: "WeChat" },
     qq: { zh: "QQ", en: "QQ" },
     github: { zh: "GitHub", en: "GitHub" },
   } satisfies Record<string, Localized<string>>,

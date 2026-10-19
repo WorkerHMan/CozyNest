@@ -1,7 +1,7 @@
-import { Link2 } from "lucide-react"
+import { HeartHandshake, Link2 } from "lucide-react"
 import Link from "next/link"
 import Script from "next/script"
-import { siAlipay, siGithub, siQq, siWechat } from "simple-icons"
+import { siGithub, siQq, siWechat } from "simple-icons"
 
 import { FooterUptime } from "@/components/layout/footer-uptime"
 import { NavIcon } from "@/components/layout/nav-icon"
@@ -23,16 +23,10 @@ const BRANDS = {
   github: siGithub,
   wechat: siWechat,
   qq: siQq,
-  /**
-   * simple-icons has no WeChat Pay mark, so the tip button reuses the official
-   * WeChat bubble — the same green mark WeChat Pay's own poster carries.
-   */
-  tipWechat: siWechat,
-  tipAlipay: siAlipay,
 } as const
 
-/** Non-brand platforms are actions, so they keep the site's line-icon set. */
-const ACTION_ICONS = { friends: Link2 } as const
+/** Non-brand entries are actions, so they keep the site's line-icon set. */
+const ACTION_ICONS = { tip: HeartHandshake, friends: Link2 } as const
 
 function BrandMark({ id, className }: { id: keyof typeof BRANDS; className?: string }) {
   return (
@@ -89,7 +83,6 @@ export function SiteFooter({ locale }: { locale: Locale }) {
           <ul className="flex flex-wrap items-center gap-3">
             {footer.platforms.map((platform) => {
               const name = labels[platform.id][locale]
-              const isImage = /\.(png|jpe?g|webp)$/i.test(platform.href)
               const action = ACTION_ICONS[platform.id as keyof typeof ACTION_ICONS]
               const brand = BRANDS[platform.id as keyof typeof BRANDS]
 
@@ -102,11 +95,15 @@ export function SiteFooter({ locale }: { locale: Locale }) {
                    * The `after:` layer widens the hit area to 32 px without
                    * changing the visual size: 16 px alone would be below the
                    * 24 px WCAG minimum for a pointer target.
+                   *
+                   * Label and tooltip are the platform's own name (GitHub,
+                   * WeChat, QQ…), not "open the image": the destination is a
+                   * plain page or profile now, not a picture to inspect.
                    */}
                   <Link
                     href={platform.href}
-                    aria-label={isImage ? `${name} — ${labels.openImage[locale]}` : name}
-                    title={isImage ? `${name} — ${labels.openImage[locale]}` : name}
+                    aria-label={name}
+                    title={name}
                     className={cn(
                       "relative grid size-4 place-items-center text-muted-foreground transition-colors duration-200 after:absolute after:-inset-2 after:content-[''] hover:text-foreground",
                       focusRing
