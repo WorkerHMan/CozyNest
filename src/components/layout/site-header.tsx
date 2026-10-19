@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { AutoHideHeader } from "@/components/layout/auto-hide-header"
 import { LocaleSwitcher } from "@/components/layout/locale-switcher"
+import { ScrollRing } from "@/components/layout/scroll-ring"
 import { SiteNav } from "@/components/layout/site-nav"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { Container } from "@/components/layout/container"
@@ -79,6 +80,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             }}
             buttonLabel={dict.actions.toggleTheme}
           />
+          <ScrollRing locale={locale} />
         </div>
       </Container>
     </AutoHideHeader>
