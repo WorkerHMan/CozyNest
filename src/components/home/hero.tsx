@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CanvasStage } from "@/components/common/canvas-stage"
+import { SceneCanvas } from "@/components/three/scene-canvas"
 import { Container } from "@/components/layout/container"
 import { articles } from "@/data/posts"
 import { projects } from "@/data/projects"
@@ -75,9 +76,10 @@ export function Hero({ dict }: { dict: Dictionary }) {
             </dl>
           </div>
 
-          {/* Reserved 3D stage. The panel is composed from CSS for now and will
-              be replaced by the WebGL renderer; the slot and its sizing contract
-              are already fixed, so swapping it in does not move the layout. */}
+          {/* The 3D stage. Its sizing contract (aspect-square, sized by its own
+              box) was fixed before the renderer existed, so dropping the WebGL
+              canvas in did not move the layout. It is the single animated focal
+              element on this screen. */}
           <div className="hidden lg:block">
             <CanvasStage
               className="aspect-square w-full border border-border/60 bg-card/40 shadow-2xl shadow-black/20 motion-safe:transition-shadow motion-safe:duration-[var(--motion-duration-base)] hover:shadow-brand/5"
@@ -87,6 +89,9 @@ export function Hero({ dict }: { dict: Dictionary }) {
               <div className="absolute inset-0 grid place-items-center">
                 <div className="relative size-40 rounded-full bg-linear-to-br from-brand to-brand-2 opacity-80 blur-2xl motion-safe:animate-pulse" />
               </div>
+              {/* Unlabelled on purpose: CanvasStage already names the region, and
+                  a canvas contributes nothing to the accessibility tree. */}
+              <SceneCanvas />
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-border/60 bg-background/40 px-4 py-3 backdrop-blur-md">
                 <span className="eyebrow text-muted-foreground">
                   {dict.home.stageLabel}

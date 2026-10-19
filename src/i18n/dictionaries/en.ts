@@ -38,7 +38,7 @@ export const en: Dictionary = {
     ctaPrimary: "Read the blog",
     ctaSecondary: "Browse projects",
     stageLabel: "3D stage",
-    stageHint: "WebGL pending",
+    stageHint: "Live WebGL",
     stats: {
       articles: "articles",
       projects: "projects",

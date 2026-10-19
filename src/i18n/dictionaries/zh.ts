@@ -36,7 +36,7 @@ export const zh = {
     ctaPrimary: "阅读文章",
     ctaSecondary: "查看项目",
     stageLabel: "3D 舞台",
-    stageHint: "WebGL 待接入",
+    stageHint: "实时渲染",
     stats: {
       articles: "篇文章",
       projects: "个项目",
