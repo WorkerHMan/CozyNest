@@ -11,7 +11,7 @@ import {
   type FocusEvent,
   type KeyboardEvent,
 } from "react"
-import { HeroPlayer } from "@/components/home/hero-player"
+import { CoverMusicControls } from "@/components/music/cover-music-controls"
 import {
   getServerSnapshot as getSettingsServerSnapshot,
   getSnapshot as getSettingsSnapshot,
@@ -377,7 +377,7 @@ export function HomeBanner({ dict, locale }: { dict: Dictionary; locale: Locale 
             </p>
 
             <div data-slot="hero-player" className="mt-8 w-full max-w-sm">
-              <HeroPlayer locale={locale} slideIndex={index} />
+              <CoverMusicControls locale={locale} />
             </div>
           </Container>
 

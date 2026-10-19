@@ -41,9 +41,16 @@ export interface AudioState {
   currentTime: number
   /** Track length in seconds; 0 until metadata arrives. */
   duration: number
+  /** 0–1, mirrored onto the element. */
+  volume: number
+  /** How the playlist advances when a track ends. */
+  mode: PlayMode
 }
 
-const { tracks, volume } = heroPlayer
+/** 顺序 → 单曲循环 → 随机. Cycled by one button, so it is a short union. */
+export type PlayMode = "sequence" | "repeatOne" | "shuffle"
+
+const { tracks } = heroPlayer
 
 const SERVER_SNAPSHOT: AudioState = {
   index: 0,
@@ -53,6 +60,8 @@ const SERVER_SNAPSHOT: AudioState = {
   ready: false,
   currentTime: 0,
   duration: 0,
+  volume: heroPlayer.volume,
+  mode: "sequence",
 }
 
 let audio: HTMLAudioElement | null = null
@@ -93,7 +102,7 @@ function ensureAudio(): HTMLAudioElement | null {
   if (typeof window === "undefined") return null
 
   const element = new Audio()
-  element.volume = volume
+  element.volume = state.volume
   // No bytes fetched until playback is actually wanted.
   element.preload = "none"
   element.src = tracks[state.index].src
@@ -101,7 +110,24 @@ function ensureAudio(): HTMLAudioElement | null {
   element.addEventListener("play", () => emit({ playing: true, blocked: false }))
   element.addEventListener("pause", () => emit({ playing: false }))
   element.addEventListener("canplay", () => emit({ unavailable: false }))
-  element.addEventListener("ended", () => next(true))
+  /**
+   * What happens at the end of a track. Read from `state` rather than a closure
+   * so the button that cycles the mode takes effect immediately.
+   */
+  element.addEventListener("ended", () => {
+    if (state.mode === "repeatOne") {
+      element.currentTime = 0
+      void element.play().catch(() => undefined)
+      return
+    }
+    if (state.mode === "shuffle" && tracks.length > 1) {
+      let pick = Math.floor(Math.random() * tracks.length)
+      if (pick === state.index) pick = (pick + 1) % tracks.length
+      goTo(pick, true)
+      return
+    }
+    next(true)
+  })
   // `timeupdate` fires a handful of times per second, which is enough to drive
   // the progress bar without re-rendering on every animation frame.
   element.addEventListener("timeupdate", () => emit({ currentTime: element.currentTime }))
@@ -162,6 +188,21 @@ export function seek(time: number) {
   if (!audio) return
   audio.currentTime = time
   emit({ currentTime: time })
+}
+
+/** 0–1. Clamped, and applied to the element so the change is audible at once. */
+export function setVolume(level: number) {
+  const clamped = Math.min(1, Math.max(0, level))
+  if (audio) audio.volume = clamped
+  emit({ volume: clamped })
+}
+
+const MODES: readonly PlayMode[] = ["sequence", "repeatOne", "shuffle"]
+
+/** Cycles 顺序 → 单曲循环 → 随机 → 顺序. */
+export function cycleMode() {
+  const index = MODES.indexOf(state.mode)
+  emit({ mode: MODES[(index + 1) % MODES.length] })
 }
 
 export function next(resume: boolean) {
