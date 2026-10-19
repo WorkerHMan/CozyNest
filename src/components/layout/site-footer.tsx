@@ -5,6 +5,7 @@ import { siGithub, siQq, siWechat } from "simple-icons"
 
 import { FooterUptime } from "@/components/layout/footer-uptime"
 import { NavIcon } from "@/components/layout/nav-icon"
+import { VisitorInfo } from "@/components/layout/visitor-info"
 import { Container } from "@/components/layout/container"
 import { footer } from "@/config/footer"
 import { navItems, siteConfig } from "@/config/site"
@@ -125,6 +126,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
               )
             })}
           </ul>
+          <VisitorInfo locale={locale} />
         </div>
 
         {/* Band 3 — site info, inline. */}
@@ -176,16 +178,24 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             <span className="text-foreground">{footer.designer}</span>
           </span>
         </p>
-        {footer.filing.label ? (
-          <a
-            href={footer.filing.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn("font-mono transition-colors duration-200 hover:text-foreground", focusRing)}
+        <div className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
+          <Link
+            href="/disclaimer"
+            className={cn("transition-colors duration-200 hover:text-foreground", focusRing)}
           >
-            {labels.filing[locale]} {footer.filing.label}
-          </a>
-        ) : null}
+            {labels.disclaimer[locale]}
+          </Link>
+          {footer.filing.label ? (
+            <a
+              href={footer.filing.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn("font-mono transition-colors duration-200 hover:text-foreground", focusRing)}
+            >
+              {labels.filing[locale]} {footer.filing.label}
+            </a>
+          ) : null}
+        </div>
       </Container>
 
       {/* Lazy, after everything else: a counter must never delay the page, and

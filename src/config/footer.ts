@@ -84,6 +84,7 @@ export const footer = {
       en: "Counted by busuanzi; an em dash means the script was blocked",
     },
     rights: { zh: "保留所有权利", en: "All rights reserved" },
+    disclaimer: { zh: "免责声明", en: "Disclaimer" },
     openImage: { zh: "打开图片", en: "Open the image" },
     qrPlaceholder: { zh: "二维码占位图", en: "Placeholder QR code" },
     friends: { zh: "友链", en: "Friends" },
