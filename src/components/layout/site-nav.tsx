@@ -3,6 +3,8 @@
 import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import type { ReactNode } from "react"
+import { NavDropdown } from "@/components/layout/nav-dropdown"
 import { NavIcon } from "@/components/layout/nav-icon"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,6 +35,12 @@ interface SiteNavProps {
   /** Heading shown at the top of the mobile sheet. */
   sheetTitle: string
   closeLabel: string
+  /**
+   * Server-rendered panel for the blog entry. The menu content is built where the
+   * article data lives and handed to this client island as a node, so the nav
+   * stays a client component without importing the archive or the tag index.
+   */
+  blogMenu?: ReactNode
 }
 
 /**
@@ -60,6 +68,7 @@ export function SiteNav({
   triggerLabel,
   sheetTitle,
   closeLabel,
+  blogMenu,
 }: SiteNavProps) {
   const pathname = usePathname()
   const current = normalizePathname(pathname ?? "/")
@@ -69,6 +78,22 @@ export function SiteNav({
       <nav aria-label={navLabel} className="hidden lg:flex lg:items-center lg:gap-1">
         {links.map((link) => {
           const active = isActiveHref(current, link.href)
+
+          /* The blog entry opens a panel instead of navigating; every other
+             section stays a plain link. */
+          if (link.name === "blog" && blogMenu) {
+            return (
+              <NavDropdown
+                key={link.href}
+                label={link.label}
+                active={active}
+                icon={<NavIcon name={link.name} className="hidden size-3.5 shrink-0 xl:block" />}
+              >
+                {blogMenu}
+              </NavDropdown>
+            )
+          }
+
           return (
             <Link
               key={link.href}

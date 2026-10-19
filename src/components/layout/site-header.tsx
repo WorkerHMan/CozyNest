@@ -27,6 +27,42 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     name: item.key,
   }))
 
+  /* Built here on the server so the client nav never imports the article data.
+     The panel only routes; 列表、分类、归档、标签 each have their own page, and the
+     content the owner described (the dense grid, the tag counts) belongs there,
+     not inside a menu. Labels stay to two characters: a dropdown is a signpost,
+     not a table of contents. */
+  const menuCopy = {
+    overview: { zh: "总览", en: "Overview" },
+    featured: { zh: "精选", en: "Featured" },
+    topics: { zh: "分类", en: "Topics" },
+    archive: { zh: "归档", en: "Archive" },
+    tags: { zh: "标签", en: "Tags" },
+  }
+
+  const menuItems = [
+    { href: "/blog", label: menuCopy.overview[locale] },
+    { href: "/blog/featured", label: menuCopy.featured[locale] },
+    { href: "/blog/topics", label: menuCopy.topics[locale] },
+    { href: "/blog/archive", label: menuCopy.archive[locale] },
+    { href: "/blog/tags", label: menuCopy.tags[locale] },
+  ]
+
+  const blogMenu = (
+    <ul className="space-y-px">
+      {menuItems.map((item) => (
+        <li key={item.href}>
+          <Link
+            href={item.href}
+            className="block rounded-md px-2.5 py-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
+          >
+            {item.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
+
   return (
     <AutoHideHeader>
       {/* The negative left margin cancels the Container's own padding, so the
@@ -63,6 +99,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             triggerLabel={dict.actions.openMenu}
             sheetTitle={dict.footer.sections}
             closeLabel={dict.actions.closeMenu}
+            blogMenu={blogMenu}
           />
         </Suspense>
 
