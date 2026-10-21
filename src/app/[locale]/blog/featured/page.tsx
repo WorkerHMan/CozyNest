@@ -1,9 +1,10 @@
-import { ArrowLeft, Clock, Sparkles } from "lucide-react"
+import { PostCard } from "@/components/blog/post-card"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 import { Container } from "@/components/layout/container"
 import { blogLabels } from "@/config/blog-labels"
-import { formatArticleDate, formatReadingTime, getFeaturedArticles } from "@/data/posts"
+import { getFeaturedArticles } from "@/data/posts"
 import { defaultLocale, isLocale } from "@/i18n"
 import { cn } from "@/lib/utils"
 
@@ -48,35 +49,10 @@ export default async function FeaturedPage(props: PageProps<"/[locale]/blog/feat
       {featured.length === 0 ? (
         <p className="mt-10 text-sm text-muted-foreground">{copy.empty[locale]}</p>
       ) : (
-        <ul className="mt-10 space-y-4">
+        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((article) => (
-            <li
-              key={article.slug}
-              className="rounded-2xl border border-border/60 p-5 transition-colors duration-200 hover:border-brand/40"
-            >
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1 text-brand">
-                  <Sparkles aria-hidden className="size-3" />
-                  {article.topic}
-                </span>
-                <span>{formatArticleDate(article.publishedAt, locale)}</span>
-                <span className="inline-flex items-center gap-1">
-                  <Clock aria-hidden className="size-3" />
-                  {formatReadingTime(article.readingMinutes, locale)}
-                </span>
-              </div>
-
-              <h2 className="font-heading mt-2 text-xl font-semibold tracking-tight text-balance">
-                <Link href={`/blog/${article.slug}`} className={cn("hover:text-brand", focusRing)}>
-                  {article.title[locale]}
-                </Link>
-              </h2>
-
-              {article.summary ? (
-                <p className="mt-1.5 text-sm leading-relaxed text-pretty text-muted-foreground">
-                  {article.summary[locale]}
-                </p>
-              ) : null}
+            <li key={article.slug}>
+              <PostCard article={article} locale={locale} />
             </li>
           ))}
         </ul>

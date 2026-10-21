@@ -21,6 +21,7 @@ import type { Article, ArticleBlock, Localized } from "@/types/content"
 const allArticles: readonly Article[] = [
   {
     slug: "stm32-clock-tree-notes",
+    cover: "/hero/dusk-lake.webp",
     topic: "stm32",
     title: {
       zh: "STM32 时钟树梳理：从 HSE 到外设时钟",
@@ -77,6 +78,7 @@ const allArticles: readonly Article[] = [
   },
   {
     slug: "freertos-task-priority-pitfalls",
+    cover: "/hero/winter-snow.webp",
     topic: "freertos",
     title: {
       zh: "FreeRTOS 任务优先级的几个常见坑",
@@ -124,6 +126,7 @@ const allArticles: readonly Article[] = [
   },
   {
     slug: "linux-driver-debug-workflow",
+    cover: "/hero/rooftop-berries.webp",
     topic: "linux",
     title: {
       zh: "Linux 驱动调试工作流：从 dmesg 到 ftrace",
@@ -177,6 +180,7 @@ const allArticles: readonly Article[] = [
   },
   {
     slug: "opencv-pipeline-on-edge-device",
+    cover: "/hero/anime-profile.webp",
     topic: "vision",
     title: {
       zh: "在边缘设备上收敛一条 OpenCV 处理流水线",
@@ -219,6 +223,333 @@ const allArticles: readonly Article[] = [
         kind: "quote",
         text: "边缘设备上的性能优化，八成是在减少数据搬运，而不是换算法。",
       },
+    ],
+  },
+
+  /* ---- demo filler: 16 more entries so the listings and the drum have volume ---- */
+  {
+    slug: "cpp-move-semantics",
+    cover: "/hero/dusk-lake.webp",
+    topic: "cpp",
+    title: {
+      zh: "C++ 移动语义：std::move 并不移动任何东西",
+      en: "cpp move semantics",
+    },
+    summary: {
+      zh: "std::move 只是一次类型转换，真正发生什么取决于被调用的构造函数。",
+      en: "std::move 只是一次类型转换，真正发生什么取决于被调用的构造函数。",
+    },
+    category: { zh: "C / C++", en: "C / C++" },
+    publishedAt: "2025-12-28",
+    readingMinutes: 9,
+    tags: ["C++", "移动语义", "右值"],
+    body: [
+        { kind: "p", text: "很多人以为 std::move 会搬运数据。它只把左值转成右值引用，绑定到移动构造函数——而那个函数可能是空的。" },
+        { kind: "p", text: "判断标准很简单：类型是否真的持有资源。string、vector 会移动；只含 POD 的结构体和拷贝没区别。" },
+    ],
+  },
+  {
+    slug: "cpp-object-lifetime",
+    cover: "/hero/winter-snow.webp",
+    topic: "cpp",
+    title: {
+      zh: "对象生命周期与悬垂引用的三种典型场景",
+      en: "cpp object lifetime",
+    },
+    summary: {
+      zh: "返回局部引用、捕获失效引用、容器扩容后的指针失效。",
+      en: "返回局部引用、捕获失效引用、容器扩容后的指针失效。",
+    },
+    category: { zh: "C / C++", en: "C / C++" },
+    publishedAt: "2025-12-15",
+    readingMinutes: 11,
+    tags: ["C++", "生命周期", "调试"],
+    body: [
+        { kind: "p", text: "悬垂引用不会立刻崩，它在某次访问时给出随机结果——这类 bug 最难查。" },
+        { kind: "p", text: "三个高频来源：返回局部变量引用、lambda 按引用捕获临时对象、vector 扩容后沿用旧迭代器。" },
+    ],
+  },
+  {
+    slug: "cpp-template-specialization",
+    cover: "/hero/rooftop-berries.webp",
+    topic: "cpp",
+    title: {
+      zh: "模板特化：编译期分发的三种写法",
+      en: "cpp template specialization",
+    },
+    summary: {
+      zh: "if constexpr、SFINAE、特化，各自适合什么场景。",
+      en: "if constexpr、SFINAE、特化，各自适合什么场景。",
+    },
+    category: { zh: "C / C++", en: "C / C++" },
+    publishedAt: "2025-11-30",
+    readingMinutes: 10,
+    tags: ["C++", "模板", "编译期"],
+    body: [
+        { kind: "p", text: "if constexpr 最好读，但要求条件在模板内部可用；SFINAE 兼容老代码；全特化适合按类型换实现。" },
+    ],
+  },
+  {
+    slug: "stm32-dma-cache",
+    cover: "/hero/anime-profile.webp",
+    topic: "stm32",
+    title: {
+      zh: "STM32H7 上 DMA 与 D-Cache 的一致性",
+      en: "stm32 dma cache",
+    },
+    summary: {
+      zh: "不开 MPU 配置就用 DMA，收到的数据可能是旧的。",
+      en: "不开 MPU 配置就用 DMA，收到的数据可能是旧的。",
+    },
+    category: { zh: "STM32", en: "STM32" },
+    publishedAt: "2025-11-22",
+    readingMinutes: 13,
+    tags: ["STM32", "DMA", "Cache"],
+    body: [
+        { kind: "p", text: "H7 的 D-Cache 让 CPU 看到的内存和外设写入的内存不是一回事。DMA 写进 RAM 后，CPU 可能读到缓存里的旧值。" },
+        { kind: "p", text: "两种处理：把 DMA 缓冲区放到不可缓存区段，或者在收完后按行 invalidation。前者更简单也更不容易错。" },
+    ],
+  },
+  {
+    slug: "stm32-stop2-wakeup",
+    cover: "/hero/cartoon-goats.webp",
+    topic: "stm32",
+    title: {
+      zh: "低功耗实测：Stop2 模式的唤醒时间与电流",
+      en: "stm32 stop2 wakeup",
+    },
+    summary: {
+      zh: "实测数据比数据手册更有说服力。",
+      en: "实测数据比数据手册更有说服力。",
+    },
+    category: { zh: "STM32", en: "STM32" },
+    publishedAt: "2025-11-08",
+    readingMinutes: 8,
+    tags: ["STM32", "低功耗", "实测"],
+    body: [
+        { kind: "p", text: "空载 3.2µA，唤醒到主循环 1.8ms，唤醒源用 RTC 闹钟。" },
+        { kind: "p", text: "注意：唤醒后外设时钟需要重新配置，很多人卡在这里。" },
+    ],
+  },
+  {
+    slug: "stm32-nvic-priority",
+    cover: "/hero/anime-sleep.webp",
+    topic: "stm32",
+    title: {
+      zh: "中断优先级分组：一个被忽略的全局设置",
+      en: "stm32 nvic priority",
+    },
+    summary: {
+      zh: "分组只设一次，但决定了所有中断的相对优先级。",
+      en: "分组只设一次，但决定了所有中断的相对优先级。",
+    },
+    category: { zh: "STM32", en: "STM32" },
+    publishedAt: "2025-10-26",
+    readingMinutes: 7,
+    tags: ["STM32", "中断", "NVIC"],
+    body: [
+        { kind: "p", text: "NVIC_SetPriorityGrouping 改的是抢占位和子优先级的划分。分组改了，之前算好的优先级数值全部含义变化。" },
+    ],
+  },
+  {
+    slug: "freertos-stack-sizing",
+    cover: "/hero/dusk-lake.webp",
+    topic: "freertos",
+    title: {
+      zh: "FreeRTOS 任务栈到底该开多大",
+      en: "freertos stack sizing",
+    },
+    summary: {
+      zh: "用高水位标记反推，而不是猜。",
+      en: "用高水位标记反推，而不是猜。",
+    },
+    category: { zh: "FreeRTOS", en: "FreeRTOS" },
+    publishedAt: "2025-10-18",
+    readingMinutes: 9,
+    tags: ["FreeRTOS", "栈", "内存"],
+    body: [
+        { kind: "p", text: "uxTaskGetStackHighWaterMark 返回历史最小剩余量（单位是字，不是字节）。跑满所有分支后再读，才是真实需求。" },
+        { kind: "p", text: "留 30% 余量：中断嵌套和 printf 会额外吃栈。" },
+    ],
+  },
+  {
+    slug: "freertos-event-group",
+    cover: "/hero/winter-snow.webp",
+    topic: "freertos",
+    title: {
+      zh: "用事件组替掉一轮轮询",
+      en: "freertos event group",
+    },
+    summary: {
+      zh: "三个条件都满足才继续，用事件组比轮询省电。",
+      en: "三个条件都满足才继续，用事件组比轮询省电。",
+    },
+    category: { zh: "FreeRTOS", en: "FreeRTOS" },
+    publishedAt: "2025-10-05",
+    readingMinutes: 8,
+    tags: ["FreeRTOS", "事件组", "同步"],
+    body: [
+        { kind: "p", text: "xEventGroupWaitBits 可以等「任意一个」或「全部」，还能自动清除标志位——这正好是状态机需要的语义。" },
+    ],
+  },
+  {
+    slug: "freertos-timer-vs-queue",
+    cover: "/hero/rooftop-berries.webp",
+    topic: "freertos",
+    title: {
+      zh: "软件定时器还是队列：一个选择标准",
+      en: "freertos timer vs queue",
+    },
+    summary: {
+      zh: "回调里不能阻塞，这条决定了大部分选择。",
+      en: "回调里不能阻塞，这条决定了大部分选择。",
+    },
+    category: { zh: "FreeRTOS", en: "FreeRTOS" },
+    publishedAt: "2025-09-21",
+    readingMinutes: 6,
+    tags: ["FreeRTOS", "定时器", "队列"],
+    body: [
+        { kind: "p", text: "软件定时器回调跑在定时器服务任务里，阻塞它等于阻塞所有定时器。需要阻塞的操作，发消息给工作队列。" },
+    ],
+  },
+  {
+    slug: "linux-module-signing",
+    cover: "/hero/anime-profile.webp",
+    topic: "linux",
+    title: {
+      zh: "内核模块编译与签名踩坑记录",
+      en: "linux module signing",
+    },
+    summary: {
+      zh: "开了 Secure Boot 之后，insmod 会直接拒绝。",
+      en: "开了 Secure Boot 之后，insmod 会直接拒绝。",
+    },
+    category: { zh: "Linux", en: "Linux" },
+    publishedAt: "2025-09-12",
+    readingMinutes: 12,
+    tags: ["Linux", "内核模块", "签名"],
+    body: [
+        { kind: "p", text: "模块签名需要内核的证书链。自己编译的内核要先签模块再用，否则 insmod 返回 Invalid argument 而不告诉你原因。" },
+    ],
+  },
+  {
+    slug: "linux-perf-sched",
+    cover: "/hero/cartoon-goats.webp",
+    topic: "linux",
+    title: {
+      zh: "用 perf 定位一次上下文切换抖动",
+      en: "linux perf sched",
+    },
+    summary: {
+      zh: "每秒几万次切换，问题在锁竞争而不在调度器。",
+      en: "每秒几万次切换，问题在锁竞争而不在调度器。",
+    },
+    category: { zh: "Linux", en: "Linux" },
+    publishedAt: "2025-08-30",
+    readingMinutes: 14,
+    tags: ["Linux", "perf", "调度"],
+    body: [
+        { kind: "p", text: "perf sched latency 按等待时间排序，一眼看到最长的那几条。再 perf record 抓栈，多数是 mutex 竞争。" },
+    ],
+  },
+  {
+    slug: "linux-udev-names",
+    cover: "/hero/anime-sleep.webp",
+    topic: "linux",
+    title: {
+      zh: "udev 规则：让设备名稳定下来的正确做法",
+      en: "linux udev names",
+    },
+    summary: {
+      zh: "别用 ttyUSB0，用序列号匹配。",
+      en: "别用 ttyUSB0，用序列号匹配。",
+    },
+    category: { zh: "Linux", en: "Linux" },
+    publishedAt: "2025-08-16",
+    readingMinutes: 7,
+    tags: ["Linux", "udev", "串口"],
+    body: [
+        { kind: "p", text: "写 99-mydevice.rules，按 idVendor/idProduct 或序列号匹配，SYMLINK 出固定名字。插拔顺序就不会再影响设备路径。" },
+    ],
+  },
+  {
+    slug: "vision-pyramid-border",
+    cover: "/hero/dusk-lake.webp",
+    topic: "vision",
+    title: {
+      zh: "图像金字塔的边界处理会吃掉你的检测框",
+      en: "vision pyramid border",
+    },
+    summary: {
+      zh: "pyrDown 的边界复制会让靠近边缘的目标变形。",
+      en: "pyrDown 的边界复制会让靠近边缘的目标变形。",
+    },
+    category: { zh: "计算机视觉", en: "计算机视觉" },
+    publishedAt: "2025-08-02",
+    readingMinutes: 9,
+    tags: ["OpenCV", "金字塔", "检测"],
+    body: [
+        { kind: "p", text: "先做 copyMakeBorder 再 pyrDown，或者在原分辨率上检测小目标。边界被镜像复制的区域会产生假边缘。" },
+    ],
+  },
+  {
+    slug: "vision-light-normalize",
+    cover: "/hero/winter-snow.webp",
+    topic: "vision",
+    title: {
+      zh: "跑 Canny 之前先做一次光照归一化",
+      en: "vision light normalize",
+    },
+    summary: {
+      zh: "同一场景换个灯，阈值全废。",
+      en: "同一场景换个灯，阈值全废。",
+    },
+    category: { zh: "计算机视觉", en: "计算机视觉" },
+    publishedAt: "2025-07-19",
+    readingMinutes: 10,
+    tags: ["OpenCV", "Canny", "预处理"],
+    body: [
+        { kind: "p", text: "CLAHE 在 LAB 的 L 通道上做，比直接在灰度上做更稳，也不会把颜色信息一起压平。" },
+    ],
+  },
+  {
+    slug: "vision-camera-calibration",
+    cover: "/hero/rooftop-berries.webp",
+    topic: "vision",
+    title: {
+      zh: "相机标定：从棋盘格到重投影误差",
+      en: "vision camera calibration",
+    },
+    summary: {
+      zh: "误差低于 0.3 像素才算能用。",
+      en: "误差低于 0.3 像素才算能用。",
+    },
+    category: { zh: "计算机视觉", en: "计算机视觉" },
+    publishedAt: "2025-07-05",
+    readingMinutes: 15,
+    tags: ["相机标定", "重投影误差", "OpenCV"],
+    body: [
+        { kind: "p", text: "calibrateCamera 返回的 RMS 是重投影误差，不是「精度」。畸变大的镜头要用更多姿态，别只拍正面。" },
+    ],
+  },
+  {
+    slug: "vision-quantization-loss",
+    cover: "/hero/anime-profile.webp",
+    topic: "vision",
+    title: {
+      zh: "边缘设备上模型量化的精度损失评估",
+      en: "vision quantization loss",
+    },
+    summary: {
+      zh: "先量化再评估，不要用原模型的结果自我安慰。",
+      en: "先量化再评估，不要用原模型的结果自我安慰。",
+    },
+    category: { zh: "计算机视觉", en: "计算机视觉" },
+    publishedAt: "2025-06-21",
+    readingMinutes: 11,
+    tags: ["量化", "边缘设备", "评估"],
+    body: [
+        { kind: "p", text: "INT8 量化后逐层比对输出差异，找出误差放大的那一层。多数情况下问题在少数通道的离群值。" },
     ],
   },
 ] as const

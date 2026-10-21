@@ -30,6 +30,13 @@ export interface Article {
   readingMinutes: number
   tags: readonly string[]
   featured?: boolean
+  /**
+   * Card artwork. Optional: when absent, components draw a deterministic gradient
+   * from the slug instead of a broken image. The files currently come from
+   * `public/hero/` — the same set the cover carousel uses — so the cards carry
+   * real photography until purpose-made covers exist.
+   */
+  cover?: string
   /** Absent while a stub is published but its body is not written yet. */
   body?: readonly ArticleBlock[]
 }

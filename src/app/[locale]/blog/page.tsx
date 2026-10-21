@@ -1,16 +1,10 @@
-import { CalendarDays, Clock, Tag } from "lucide-react"
 import Link from "next/link"
 
 import { Container } from "@/components/layout/container"
+import { PostCard } from "@/components/blog/post-card"
 import { blogLabels } from "@/config/blog-labels"
 import { getTopic, topics } from "@/config/topics"
-import {
-  formatArticleDate,
-  formatReadingTime,
-  getAllArticles,
-  getArchiveByYear,
-  getTopicCounts,
-} from "@/data/posts"
+import { getAllArticles, getArchiveByYear, getTopicCounts } from "@/data/posts"
 import { defaultLocale, getDictionary, isLocale } from "@/i18n"
 import { cn } from "@/lib/utils"
 
@@ -111,67 +105,12 @@ export default async function BlogPage(props: PageProps<"/[locale]/blog">) {
                 {group.articles.length}
               </span>
             </div>
-            <ul className="mt-5 divide-y divide-border/60">
-              {group.articles.map((article) => {
-                const topic = getTopic(article.topic)
-                return (
-                  <li key={article.slug} className="py-5 first:pt-0">
-                    <article className="group">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1.5">
-                          <CalendarDays aria-hidden className="size-3.5" />
-                          <time dateTime={article.publishedAt}>
-                            {formatArticleDate(article.publishedAt, locale)}
-                          </time>
-                        </span>
-                        <span aria-hidden>·</span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Clock aria-hidden className="size-3.5" />
-                          {formatReadingTime(article.readingMinutes, locale)}
-                        </span>
-                        {topic ? (
-                          <>
-                            <span aria-hidden>·</span>
-                            <span className={cn("font-medium", topic.accent)}>
-                              {topic.label[locale]}
-                            </span>
-                          </>
-                        ) : null}
-                      </div>
-                      <h4 className="font-heading mt-2 text-lg font-semibold tracking-tight text-balance">
-                        <Link
-                          href={`/blog/${article.slug}`}
-                          className={cn(
-                            "transition-colors duration-200 group-hover:text-brand",
-                            focusRing
-                          )}
-                        >
-                          {article.title[locale]}
-                        </Link>
-                      </h4>
-                      <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
-                        {article.summary[locale]}
-                      </p>
-                      <ul className="mt-2.5 flex flex-wrap gap-1.5">
-                        {article.tags.map((tag) => (
-                          <li key={tag}>
-                            <Link
-                              href={`/blog/tag/${encodeURIComponent(tag)}`}
-                              className={cn(
-                                "inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-0.5 font-mono text-[0.6875rem] text-muted-foreground transition-colors duration-200 hover:text-foreground",
-                                focusRing
-                              )}
-                            >
-                              <Tag aria-hidden className="size-2.5" />
-                              {tag}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </article>
-                  </li>
-                )
-              })}
+            <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {group.articles.map((article) => (
+                <li key={article.slug}>
+                  <PostCard article={article} locale={locale} />
+                </li>
+              ))}
             </ul>
           </div>
         ))}

@@ -1,11 +1,12 @@
-import { ArrowLeft, CalendarDays, Clock } from "lucide-react"
+import { PostCard } from "@/components/blog/post-card"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { Container } from "@/components/layout/container"
 import { blogLabels } from "@/config/blog-labels"
 import { getTopic, topics } from "@/config/topics"
-import { formatArticleDate, formatReadingTime, getArticlesByTopic } from "@/data/posts"
+import { getArticlesByTopic } from "@/data/posts"
 import { defaultLocale, isLocale, locales } from "@/i18n"
 import { cn } from "@/lib/utils"
 
@@ -59,30 +60,10 @@ export default async function TopicPage(props: PageProps<"/[locale]/blog/topic/[
       {articles.length === 0 ? (
         <p className="mt-10 text-sm text-muted-foreground">{label("noPosts")}</p>
       ) : (
-        <ul className="mt-10 max-w-2xl divide-y divide-border/60">
+        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (
-            <li key={article.slug} className="py-5 first:pt-0">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">
-                  <CalendarDays aria-hidden className="size-3.5" />
-                  <time dateTime={article.publishedAt}>
-                    {formatArticleDate(article.publishedAt, locale)}
-                  </time>
-                </span>
-                <span aria-hidden>·</span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Clock aria-hidden className="size-3.5" />
-                  {formatReadingTime(article.readingMinutes, locale)}
-                </span>
-              </div>
-              <h2 className="font-heading mt-2 text-lg font-semibold tracking-tight text-balance">
-                <Link href={`/blog/${article.slug}`} className={cn("hover:text-brand", focusRing)}>
-                  {article.title[locale]}
-                </Link>
-              </h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-pretty text-muted-foreground">
-                {article.summary[locale]}
-              </p>
+            <li key={article.slug}>
+              <PostCard article={article} locale={locale} />
             </li>
           ))}
         </ul>
