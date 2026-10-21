@@ -67,7 +67,60 @@ const SERVER_SNAPSHOT: AudioState = {
 let audio: HTMLAudioElement | null = null
 let state: AudioState = SERVER_SNAPSHOT
 let snapshot: AudioState = SERVER_SNAPSHOT
-let autoplayAttempted = false
+
+/**
+ * Web Audio graph for the visualiser.
+ *
+ * `createMediaElementSource` may be called **once** per element, and it reroutes
+ * all of that element's output through the graph — so the analyser is connected
+ * straight to `destination`, otherwise the music would go silent. Everything is
+ * wrapped in try/catch: where Web Audio is unavailable the page falls back to a
+ * decorative pulse instead of failing.
+ */
+let audioContext: AudioContext | null = null
+let analyser: AnalyserNode | null = null
+
+export function getAnalyser(): AnalyserNode | null {
+  return analyser
+}
+
+/**
+ * Builds (once) and resumes the Web Audio graph.
+ *
+ * **Call this from a user gesture** — the play button. An `AudioContext` created
+ * outside a gesture starts suspended, and a suspended context reports an
+ * all-zero spectrum, which looks exactly like "the visualiser ignores the music".
+ * That was the bug: the graph used to be built at mount from the visualiser, so
+ * it never received data.
+ */
+export function resumeAnalyser() {
+  if (typeof window === "undefined") return
+  if (!audio) ensureAudio()
+  if (!audio) return
+
+  if (!audioContext) {
+    try {
+      const Ctor =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      if (!Ctor) return
+
+      audioContext = new Ctor()
+      const source = audioContext.createMediaElementSource(audio)
+      analyser = audioContext.createAnalyser()
+      analyser.fftSize = 512
+      analyser.smoothingTimeConstant = 0.72
+      source.connect(analyser)
+      analyser.connect(audioContext.destination)
+    } catch {
+      analyser = null
+      audioContext = null
+      return
+    }
+  }
+
+  if (audioContext.state === "suspended") void audioContext.resume().catch(() => undefined)
+}
 
 const listeners = new Set<() => void>()
 
@@ -143,33 +196,17 @@ function ensureAudio(): HTMLAudioElement | null {
 
   audio = element
   emit({ ready: true })
-  attemptAutoplay()
   return element
 }
 
 /**
- * Tries to start immediately. Browsers block audible autoplay until the page has
- * had a gesture, so a rejection falls back to the visitor's first interaction
- * rather than leaving a silent, unexplained player.
+ * Called by the cover player: boots the engine, and **stays silent**.
+ *
+ * Music is off by default. Autoplay was removed deliberately — sound that starts
+ * without being asked for is a nuisance on a site someone opened to read, and
+ * browsers block it anyway. `preload = "none"` means arming the element fetches
+ * no bytes; the first byte moves when the visitor presses play.
  */
-function attemptAutoplay() {
-  const element = audio
-  if (!element || autoplayAttempted) return
-  autoplayAttempted = true
-
-  element.play().catch(() => {
-    emit({ blocked: true })
-    const unlock = () => {
-      window.removeEventListener("pointerdown", unlock)
-      window.removeEventListener("keydown", unlock)
-      audio?.play().catch(() => {})
-    }
-    window.addEventListener("pointerdown", unlock, { once: true })
-    window.addEventListener("keydown", unlock, { once: true })
-  })
-}
-
-/** Called by the cover player: boots the engine and attempts autoplay. */
 export function start() {
   ensureAudio()
 }

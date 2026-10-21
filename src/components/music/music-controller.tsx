@@ -106,8 +106,8 @@ export function MusicController({ locale, className }: MusicControllerProps) {
     mute: { zh: "静音", en: "Mute" },
     pick: { zh: "播放这首", en: "Play this track" },
     blocked: {
-      zh: "浏览器拦截了自动播放，按一下播放键",
-      en: "Autoplay was blocked — press play",
+      zh: "浏览器拦截了播放，按一下播放键",
+      en: "Playback was blocked — press play",
     },
     unavailable: { zh: "音频暂不可用", en: "Audio unavailable" },
   }

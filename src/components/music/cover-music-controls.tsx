@@ -49,11 +49,13 @@ export function CoverMusicControls({ locale }: { locale: Locale }) {
   const [folded, setFolded] = useState(true)
 
   /**
-   * Boots the audio engine (and attempts autoplay) when the cover mounts.
+   * Boots the audio engine when the cover mounts — and deliberately does **not**
+   * start playing. Music is off by default: sound nobody asked for is a nuisance
+   * on a page opened to read, and browsers block it anyway. `preload = "none"`
+   * means this fetches no bytes; the first byte moves when play is pressed.
    *
-   * This is what sets `ready` on the store, and `ready` is what lets the dock
-   * appear on other pages. Dropping this call while rewriting the cover once made
-   * the dock vanish site-wide, so it lives here deliberately.
+   * Do not delete this call while tidying: it creates the single shared
+   * `<audio>` element that the dock and the /music page drive.
    */
   useEffect(() => {
     start()
