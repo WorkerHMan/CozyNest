@@ -113,8 +113,8 @@ export function RandomStage({
     setPosition((value) => value + delta)
   }
 
-  /* Two laps: enough to read as a spin, short enough that the wait stays polite.
-   The curve is symmetric — the same time accelerating as braking. */
+  /* `laps` is a whole number of extra turns. Fractional laps would leave `position`
+     off the slot grid after the spin settles, and the ring would stop between cards. */
   function travelTo(target: number, duration = SPIN_MS, laps = 2) {
     const start = performance.now()
     const from = position
@@ -155,7 +155,8 @@ export function RandomStage({
       return
     }
 
-    travelTo(target)
+    // Two or three whole turns, drawn per spin.
+    travelTo(target, SPIN_MS, 2 + Math.floor(Math.random() * 2))
   }
 
   function open(slug: string) {
@@ -291,7 +292,7 @@ export function RandomStage({
             tone === "dark" ? "text-white/40" : "text-muted-foreground"
           )}
         >
-          {index + 1} / {total} · {current.date} · {current.topic}
+          {current.date} · {current.topic}
         </p>
       </div>
 
