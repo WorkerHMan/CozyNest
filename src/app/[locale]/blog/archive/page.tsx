@@ -25,7 +25,8 @@ export default async function ArchivePage(props: PageProps<"/[locale]/blog/archi
   const { locale: rawLocale } = await props.params
   const locale = isLocale(rawLocale) ? rawLocale : defaultLocale
 
-  const archive = getArchiveByYear()
+  /* Five years is as far back as the page goes; older groups are simply not drawn. */
+  const archive = getArchiveByYear().slice(0, 5)
   const label = (key: keyof typeof blogLabels) => blogLabels[key][locale]
 
   const monthName = (month: number) =>
@@ -33,6 +34,8 @@ export default async function ArchivePage(props: PageProps<"/[locale]/blog/archi
       month: "short",
       timeZone: "UTC",
     }).format(new Date(Date.UTC(2026, month - 1, 1)))
+
+  const total = archive.reduce((sum, group) => sum + group.articles.length, 0)
 
   const years = archive.map(({ year, articles }) => {
     const months = Array.from({ length: 12 }, () => 0)
@@ -72,12 +75,22 @@ export default async function ArchivePage(props: PageProps<"/[locale]/blog/archi
           countLabel={(count) =>
             locale === "zh" ? `${count} 篇` : count === 1 ? "1 post" : `${count} posts`
           }
+          totalLabel={
+            locale === "zh"
+              ? `近 ${years.length} 年 · 共 ${total} 篇`
+              : `${total} ${total === 1 ? "post" : "posts"} over the last ${years.length} years`
+          }
+          legendLabels={{
+            less: locale === "zh" ? "少" : "Less",
+            more: locale === "zh" ? "多" : "More",
+          }}
+          yearActionLabel={(year) => (locale === "zh" ? `跳到 ${year} 年` : `Jump to ${year}`)}
         />
       </section>
 
       <section className="mt-14 max-w-2xl space-y-10">
         {archive.map((group) => (
-          <div key={group.year}>
+          <div key={group.year} id={`year-${group.year}`} className="scroll-mt-24">
             <div className="flex items-baseline gap-3">
               <h2 className="font-heading text-xl font-semibold tracking-tight">{group.year}</h2>
               <span aria-hidden className="h-px flex-1 bg-border/60" />

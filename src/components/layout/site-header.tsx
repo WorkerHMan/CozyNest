@@ -1,3 +1,4 @@
+import { Archive, ChevronRight, FolderOpen, LayoutGrid, Sparkles, Tags } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
@@ -45,11 +46,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   }
 
   const menuItems = [
-    { href: "/blog", label: menuCopy.overview[locale] },
-    { href: "/blog/featured", label: menuCopy.featured[locale] },
-    { href: "/blog/topics", label: menuCopy.topics[locale] },
-    { href: "/blog/archive", label: menuCopy.archive[locale] },
-    { href: "/blog/tags", label: menuCopy.tags[locale] },
+    { href: "/blog", label: menuCopy.overview[locale], icon: LayoutGrid },
+    { href: "/blog/featured", label: menuCopy.featured[locale], icon: Sparkles },
+    { href: "/blog/topics", label: menuCopy.topics[locale], icon: FolderOpen },
+    { href: "/blog/archive", label: menuCopy.archive[locale], icon: Archive },
+    { href: "/blog/tags", label: menuCopy.tags[locale], icon: Tags },
   ]
 
   /* 随机 is not a link: it opens the 3D picker over the current page and enters
@@ -65,21 +66,37 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   }))
 
   const blogMenu = (
-    <ul className="space-y-px">
-      {menuItems.map((item) => (
-        <li key={item.href}>
-          <Link
-            href={item.href}
-            className="block rounded-md px-2.5 py-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
-          >
-            {item.label}
-          </Link>
+    <div>
+      <p className="px-2.5 pt-1 pb-1.5 text-[0.625rem] font-medium tracking-[0.14em] text-muted-foreground/60 uppercase">
+        {dict.nav.blog}
+      </p>
+      <ul className="space-y-0.5">
+        {menuItems.map((item) => (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              className="group flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:outline-none"
+            >
+              <item.icon
+                aria-hidden
+                className="size-3.5 shrink-0 text-muted-foreground/70 transition-colors duration-150 group-hover:text-brand"
+              />
+              {item.label}
+              <ChevronRight
+                aria-hidden
+                className="ml-auto size-3 -translate-x-1 opacity-0 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-50"
+              />
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <div className="mx-2 my-1.5 h-px bg-border/60" />
+      <ul>
+        <li>
+          <RandomPickerTrigger locale={locale} />
         </li>
-      ))}
-      <li>
-        <RandomPickerTrigger locale={locale} />
-      </li>
-    </ul>
+      </ul>
+    </div>
   )
 
   return (

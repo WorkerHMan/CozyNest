@@ -1,6 +1,6 @@
 "use client"
 
-import { Dices, X } from "lucide-react"
+import { ChevronRight, Dices, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
@@ -33,12 +33,22 @@ export function RandomPickerTrigger({ locale }: { locale: Locale }) {
     <button
       type="button"
       onClick={() => window.dispatchEvent(new CustomEvent(EVENT))}
+      /* Matches the link rows beside it — same padding, same icon slot — so the
+         menu does not look like four items and an afterthought. */
       className={cn(
-        "block w-full rounded-md px-2.5 py-1.5 text-left text-sm text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground",
+        "group flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground",
         focusRing
       )}
     >
+      <Dices
+        aria-hidden
+        className="size-3.5 shrink-0 text-muted-foreground/70 transition-colors duration-150 group-hover:text-brand"
+      />
       {copy.trigger[locale]}
+      <ChevronRight
+        aria-hidden
+        className="ml-auto size-3 -translate-x-1 opacity-0 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-50"
+      />
     </button>
   )
 }

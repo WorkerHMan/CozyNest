@@ -86,6 +86,7 @@ export function SiteNav({
               <NavDropdown
                 key={link.href}
                 label={link.label}
+                href={link.href}
                 active={active}
                 icon={<NavIcon name={link.name} className="hidden size-3.5 shrink-0 xl:block" />}
               >
