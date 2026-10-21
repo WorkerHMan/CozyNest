@@ -145,16 +145,8 @@ export const heroPlayer = {
     close: { zh: "收起播放器", en: "Collapse the player" },
     open: { zh: "打开音乐播放器", en: "Open the music player" },
     openPlaying: { zh: "正在播放，打开播放器", en: "Playing — open the player" },
-    openBlocked: {
-      zh: "浏览器拦截了自动播放，点一下页面即可开始，或打开播放器",
-      en: "Autoplay was blocked — click the page to start, or open the player",
-    },
     musicCredit: { zh: "音乐来源", en: "Music" },
     seek: { zh: "播放进度", en: "Playback position" },
     unavailable: { zh: "音频暂不可用", en: "Audio unavailable" },
-    autoplayBlocked: {
-      zh: "浏览器阻止了自动播放，点一下播放键即可",
-      en: "Your browser blocked autoplay — press play to start",
-    },
   },
 } as const

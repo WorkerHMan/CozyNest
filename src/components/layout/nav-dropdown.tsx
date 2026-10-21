@@ -84,6 +84,11 @@ export function NavDropdown({ label, icon, children, active = false }: NavDropdo
       {open ? (
         <div
           id={panelId}
+          /* Links close the panel; buttons do not. A button inside the menu may
+             open its own dialog, and closing the menu would unmount it. */
+          onClick={(event) => {
+            if ((event.target as HTMLElement).closest("a,button")) setOpen(false)
+          }}
           className={cn(
             "absolute top-full left-0 z-50 mt-1.5 w-[min(80vw,10.5rem)] rounded-lg border border-border/60",
             "bg-popover/95 p-1 shadow-lg shadow-black/20 backdrop-blur-md"

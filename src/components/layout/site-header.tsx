@@ -2,12 +2,15 @@ import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
 import { AutoHideHeader } from "@/components/layout/auto-hide-header"
+import { RandomPickerHost, RandomPickerTrigger } from "@/components/blog/random-overlay"
 import { LocaleSwitcher } from "@/components/layout/locale-switcher"
 import { ScrollRing } from "@/components/layout/scroll-ring"
 import { SiteNav } from "@/components/layout/site-nav"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { Container } from "@/components/layout/container"
+import { getTopic } from "@/config/topics"
 import { navItems, siteConfig } from "@/config/site"
+import { articles, formatArticleDate } from "@/data/posts"
 import { getDictionary, type Locale } from "@/i18n"
 
 /**
@@ -38,6 +41,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     topics: { zh: "分类", en: "Topics" },
     archive: { zh: "归档", en: "Archive" },
     tags: { zh: "标签", en: "Tags" },
+    random: { zh: "随机", en: "Random" },
   }
 
   const menuItems = [
@@ -47,6 +51,18 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     { href: "/blog/archive", label: menuCopy.archive[locale] },
     { href: "/blog/tags", label: menuCopy.tags[locale] },
   ]
+
+  /* 随机 is not a link: it opens the 3D picker over the current page and enters
+     whichever article the wheel lands on. Everything it needs is passed down, so
+     the client component never imports the article data itself. */
+  const randomItems = articles.map((article) => ({
+    slug: article.slug,
+    title: article.title[locale],
+    summary: article.summary[locale],
+    topic: getTopic(article.topic)?.label[locale] ?? article.topic,
+    date: formatArticleDate(article.publishedAt, locale),
+    cover: article.cover,
+  }))
 
   const blogMenu = (
     <ul className="space-y-px">
@@ -60,6 +76,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           </Link>
         </li>
       ))}
+      <li>
+        <RandomPickerTrigger locale={locale} />
+      </li>
     </ul>
   )
 
@@ -120,6 +139,10 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <ScrollRing locale={locale} />
         </div>
       </Container>
+
+      {/* Outside the dropdown on purpose: the menu unmounts when it closes, and
+          the picker must survive that. */}
+      <RandomPickerHost items={randomItems} locale={locale} />
     </AutoHideHeader>
   )
 }

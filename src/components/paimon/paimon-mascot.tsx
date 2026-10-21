@@ -45,6 +45,7 @@ function clamp(value: number, min: number, max: number): number {
  * Clicks on the mascot are excluded from the merit counter via `data-paimon`.
  */
 export function PaimonMascot({ locale }: { locale: Locale }) {
+
   const { paimonEnabled, paimonPosition, carouselAutoplay } = useSyncExternalStore(
     subscribe,
     getSnapshot,
