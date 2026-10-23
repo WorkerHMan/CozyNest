@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# superpowers skill scratch: brainstorm mockups, SDD ledgers and briefs
+.superpowers/
+
 # local verification output (screenshots + puppeteer probe scripts)
 /shots/
 /probe*.mjs
