@@ -37,12 +37,44 @@
  * Licence text: https://creativecommons.org/licenses/by/3.0/
  * Source: https://commons.wikimedia.org/
  */
+/**
+ * One lyric line.
+ *
+ * `time` is seconds from the start of the track. Give it and the line
+ * highlights as the song reaches it; omit it and the whole lyric renders as
+ * plain text with no follow-along.
+ */
+export interface LyricLine {
+  time?: number
+  text: string
+}
+
 export interface Track {
   id: string
   /** Track titles are proper nouns, so they are not translated. */
   title: string
   artist: string
   src: string
+  /**
+   * Optional: leave it out and the lyrics panel says so honestly.
+   *
+   * Nothing in this repo ships with lyrics yet. Most of these tracks are
+   * instrumental (guzheng, erhu, Kevin MacLeod) and the two Chinese vocal
+   * recordings are field recordings with no transcribed words, so there is no
+   * text to show — and none is invented here to fill the panel.
+   *
+   * To add some, either write it inline:
+   *
+   * ```ts
+   * lyrics: [
+   *   { time: 12.4, text: "第一句" },
+   *   { time: 17.9, text: "第二句" },
+   * ]
+   * ```
+   *
+   * or drop the timestamps for an unsynced text.
+   */
+  lyrics?: readonly LyricLine[]
 }
 
 export const heroPlayer = {
