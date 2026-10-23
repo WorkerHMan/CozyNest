@@ -4,6 +4,7 @@ import Script from "next/script"
 import { siGithub, siQq, siWechat } from "simple-icons"
 
 import { FooterUptime } from "@/components/layout/footer-uptime"
+import { FooterVisitTimer } from "@/components/layout/footer-visit-timer"
 import { NavIcon } from "@/components/layout/nav-icon"
 import { VisitorInfo } from "@/components/layout/visitor-info"
 import { Container } from "@/components/layout/container"
@@ -142,6 +143,15 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             label={labels.uptime[locale]}
             units={{
               days: labels.days[locale],
+              hours: labels.hours[locale],
+              minutes: labels.minutes[locale],
+              seconds: labels.seconds[locale],
+            }}
+          />
+          <span aria-hidden className="text-border">·</span>
+          <FooterVisitTimer
+            label={labels.visit[locale]}
+            units={{
               hours: labels.hours[locale],
               minutes: labels.minutes[locale],
               seconds: labels.seconds[locale],

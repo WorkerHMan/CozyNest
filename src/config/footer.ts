@@ -70,6 +70,8 @@ export const footer = {
     filing: { zh: "备案", en: "Filing" },
     designer: { zh: "设计人", en: "Designed by" },
     uptime: { zh: "已运行", en: "Up for" },
+    /* The visitor's own time on the site this session — never stored server-side. */
+    visit: { zh: "本次浏览", en: "This visit" },
     /* Unit suffixes for the uptime counter. Chinese spells them out; English
        uses the conventional short forms. */
     days: { zh: "天", en: "d" },
