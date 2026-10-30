@@ -1,4 +1,5 @@
 import { ArrowRight, Sparkles } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,6 +33,19 @@ export function Hero({ dict }: { dict: Dictionary }) {
       <Container className="relative py-20 sm:py-28">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="flex flex-col items-start gap-6">
+            {/* The mark, at the size where the face actually reads. Empty `alt`:
+                the heading directly below already says who this is, and a second
+                announcement of the same name is noise. Same file as the header
+                slot, so replacing the brand mark stays a one-file change. */}
+            <Image
+              src="/brand/logo.png"
+              alt=""
+              width={192}
+              height={192}
+              priority
+              className="size-20 rounded-full shadow-lg shadow-black/10 ring-1 ring-border/60 sm:size-24"
+            />
+
             <Badge
               variant="outline"
               className="gap-1.5 border-border/70 bg-background/60 py-1 backdrop-blur-md"
