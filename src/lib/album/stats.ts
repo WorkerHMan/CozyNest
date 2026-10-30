@@ -103,3 +103,46 @@ export function monthDensity(data: AlbumData, year: number): number[] {
   const peak = Math.max(...counts)
   return peak > 0 ? counts.map((count) => count / peak) : counts
 }
+
+/**
+ * Oldest first, undated last.
+ *
+ * A photo whose camera had no clock still belongs in the album — it just cannot
+ * claim a position on the timeline, so it sorts to the end instead of to 1970.
+ */
+function byTakenAt(a: Photo, b: Photo): number {
+  if (a.takenAt === b.takenAt) return 0
+  if (a.takenAt === null) return 1
+  if (b.takenAt === null) return -1
+  return a.takenAt < b.takenAt ? -1 : 1
+}
+
+export function photosByYear(data: AlbumData, year: number): Photo[] {
+  return data.photos.filter((photo) => yearOf(photo) === year).sort(byTakenAt)
+}
+
+export function photosByPlace(data: AlbumData, placeId: string): Photo[] {
+  return data.photos.filter((photo) => photo.placeId === placeId).sort(byTakenAt)
+}
+
+/** Photos with no date at all — the "未标注时间" row of the timeline. */
+export function undated(data: AlbumData): Photo[] {
+  return data.photos.filter((photo) => photo.takenAt === null)
+}
+
+/**
+ * The photo before and after this one on the timeline.
+ *
+ * Undated photos are not part of the sequence, so opening one shows no arrows:
+ * "next" would have no meaning, and inventing one would send the visitor
+ * somewhere they did not ask to go.
+ */
+export function neighbours(
+  data: AlbumData,
+  id: string
+): { previous: Photo | null; next: Photo | null } {
+  const dated = data.photos.filter((photo) => photo.takenAt !== null).sort(byTakenAt)
+  const index = dated.findIndex((photo) => photo.id === id)
+  if (index < 0) return { previous: null, next: null }
+  return { previous: dated[index - 1] ?? null, next: dated[index + 1] ?? null }
+}
