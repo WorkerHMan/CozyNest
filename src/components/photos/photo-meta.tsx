@@ -1,4 +1,4 @@
-﻿import Link from "next/link"
+import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { photosLabels } from "@/config/photos-labels"
@@ -10,21 +10,26 @@ import { cn } from "@/lib/utils"
 const focusRing =
   "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 
-/** "2024-05-20 20:15" 鈥?minute precision, no seconds: nobody photographs a second. */
+/**
+ * "2024-05-20 20:15" — minute precision, no seconds: nobody photographs a second.
+ * The English separator is the middle dot, matching the rest of the page.
+ */
 function when(iso: string, locale: Locale): string {
   const date = iso.slice(0, 10)
   const time = iso.slice(11, 16)
-  return locale === "zh" ? `${date} ${time}` : `${date} 路 ${time}`
+  return locale === "zh" ? `${date} ${time}` : `${date} · ${time}`
 }
 
 /**
  * The metadata column beside a photo.
  *
  * Only facts the album actually holds: when, where, which album, and the one
- * line the owner wrote. No EXIF dump 鈥?aperture and ISO are for the photographer,
+ * line the owner wrote. No EXIF dump — aperture and ISO are for the photographer,
  * not the visitor, and the point of this page is the picture.
  *
- * A photo with no date says so plainly instead of showing an empty row.
+ * Every string comes from `photosLabels`. Hardcoding copy here is what once let a
+ * GBK-mangled 时间 reach the page; the dictionary is the single place a
+ * translation can be wrong, and it is the place that is tested.
  */
 export function PhotoMeta({
   photo,
@@ -39,16 +44,16 @@ export function PhotoMeta({
   const place = photo.placeId ? data.places.find((item) => item.id === photo.placeId) : undefined
   const albums = data.albums.filter((album) => photo.albumIds.includes(album.id))
 
-  const rows: { term: string; value: ReactNode }[] = []
-
-  rows.push({
-    term: locale === "zh" ? "鏃堕棿" : "Taken",
-    value: photo.takenAt ? when(photo.takenAt, locale) : locale === "zh" ? "娌℃湁鏃堕棿淇℃伅" : "No capture time",
-  })
+  const rows: { term: string; value: ReactNode }[] = [
+    {
+      term: label("takenAt"),
+      value: photo.takenAt ? when(photo.takenAt, locale) : label("noTakenAt"),
+    },
+  ]
 
   if (place) {
     rows.push({
-      term: locale === "zh" ? "鍦扮偣" : "Place",
+      term: label("takenPlace"),
       value: (
         <Link
           href={`/photos/place/${place.id}`}
@@ -63,7 +68,7 @@ export function PhotoMeta({
   if (albums.length > 0) {
     rows.push({
       term: label("albumsGroup"),
-      value: albums.map((album) => (locale === "zh" ? album.title : album.titleEn)).join(" 路 "),
+      value: albums.map((album) => (locale === "zh" ? album.title : album.titleEn)).join(" · "),
     })
   }
 

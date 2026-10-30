@@ -53,4 +53,17 @@ export const photosLabels = {
   previous: { zh: "上一张", en: "Previous photo" },
   next: { zh: "下一张", en: "Next photo" },
   close: { zh: "关闭", en: "Close" },
+
+  /* Detail rows and map copy. These live here rather than inline in components:
+     copy written inside a component drifted — and once arrived mojibake'd after a
+     shell edit rewrote the file in the wrong encoding. */
+  takenAt: { zh: "时间", en: "Taken" },
+  takenPlace: { zh: "地点", en: "Place" },
+  noTakenAt: { zh: "没有时间信息", en: "No capture time" },
+  photo: { zh: "照片", en: "Photo" },
+  noPlaces: {
+    zh: "这些照片没有定位信息，所以还画不出足迹。",
+    en: "None of these photos carry a location, so there is no footprint to draw yet.",
+  },
+  mapHint: { zh: "点越大，照片越多", en: "A bigger dot means more photos" },
 } satisfies Record<string, Localized<string>>
