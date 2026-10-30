@@ -12,7 +12,9 @@ import type { Localized } from "@/types/content"
  */
 export const photosLabels = {
   eyebrow: { zh: "相册", en: "Photos" },
-  title: { zh: "相册", en: "Album" },
+  /* Not "相册" again: the eyebrow already says that, and the pair reads as a
+     stutter. The blog solves the same problem the same way (博客 / 技术笔记). */
+  title: { zh: "去过的地方", en: "Everywhere I've been" },
   intro: {
     zh: "按时间与地点铺开的照片，每一张都是自己拍下、自己挑出来的。",
     en: "Photos laid out by time and place — every one of them taken and picked by hand.",
