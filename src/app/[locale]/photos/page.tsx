@@ -53,7 +53,7 @@ export default async function PhotosPage(props: PageProps<"/[locale]/photos">) {
       ) : (
         <>
           <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-12">
-            <FootprintMap data={albumData} aggregates={aggregates} locale={locale} />
+            <FootprintMap places={albumData.places} aggregates={aggregates} locale={locale} />
             <PhotoCategories data={albumData} aggregates={aggregates} locale={locale} />
           </div>
 
