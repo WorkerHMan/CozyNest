@@ -40,10 +40,10 @@ export function Hero({ dict }: { dict: Dictionary }) {
             <Image
               src="/brand/logo.png"
               alt=""
-              width={192}
-              height={192}
+              width={768}
+              height={768}
               priority
-              className="size-20 rounded-full shadow-lg shadow-black/10 ring-1 ring-border/60 sm:size-24"
+              className="size-80 rounded-full shadow-lg shadow-black/10 ring-1 ring-border/60 sm:size-96"
             />
 
             <Badge
