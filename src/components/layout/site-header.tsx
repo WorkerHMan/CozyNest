@@ -9,6 +9,7 @@ import { ScrollRing } from "@/components/layout/scroll-ring"
 import { SiteNav } from "@/components/layout/site-nav"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { Container } from "@/components/layout/container"
+import { brandLogo } from "@/config/brand"
 import { getTopic } from "@/config/topics"
 import { navItems, siteConfig } from "@/config/site"
 import { articles, formatArticleDate } from "@/data/posts"
@@ -120,7 +121,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
               size, and stays a circle if the mark is later redrawn with
               transparency. */}
           <Image
-            src="/brand/logo.png"
+            src={brandLogo}
             alt=""
             width={36}
             height={36}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { CanvasStage } from "@/components/common/canvas-stage"
 import { SceneCanvas } from "@/components/three/scene-canvas"
 import { Container } from "@/components/layout/container"
+import { brandLogo } from "@/config/brand"
 import { articles } from "@/data/posts"
 import { projects } from "@/data/projects"
 import type { Dictionary } from "@/i18n"
@@ -38,7 +39,7 @@ export function Hero({ dict }: { dict: Dictionary }) {
                 announcement of the same name is noise. Same file as the header
                 slot, so replacing the brand mark stays a one-file change. */}
             <Image
-              src="/brand/logo.png"
+              src={brandLogo}
               alt=""
               width={768}
               height={768}
