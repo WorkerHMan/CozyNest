@@ -112,14 +112,20 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           {/* Drop-in logo slot: overwrite public/brand/logo.png with the real
               mark and nothing here needs to change. `alt` is empty on purpose —
               the wordmark beside it already names the site, and announcing both
-              would read it twice. */}
+              would read it twice.
+
+              Rounded, not square: the current mark is a painting with its own
+              background, and a light square tile in the middle of a text row
+              reads as an unfinished asset. A circle reads as an avatar at any
+              size, and stays a circle if the mark is later redrawn with
+              transparency. */}
           <Image
             src="/brand/logo.png"
             alt=""
             width={36}
             height={36}
             priority
-            className="size-9 shrink-0"
+            className="size-9 shrink-0 rounded-full ring-1 ring-border/60"
           />
           <span className="text-gradient-brand font-heading text-lg font-semibold tracking-tight">
             {siteConfig.name}
