@@ -1,12 +1,14 @@
 import { Container } from "@/components/layout/container"
 import { FootprintMap } from "@/components/photos/footprint-map"
 import { PhotoCategories } from "@/components/photos/photo-categories"
-import { PhotosHead } from "@/components/photos/photos-head"
+import { PhotoSearch } from "@/components/photos/photo-search"
 import { PhotoTimeline } from "@/components/photos/photo-timeline"
+import { PhotosHead } from "@/components/photos/photos-head"
 import { photosLabels } from "@/config/photos-labels"
 import { albumData } from "@/data/album"
 import { defaultLocale, isLocale } from "@/i18n"
 import { albumStats, cityAggregates } from "@/lib/album/stats"
+import { toSearchItems } from "@/lib/album/search"
 
 /**
  * 相册 — the public album.
@@ -23,6 +25,11 @@ import { albumStats, cityAggregates } from "@/lib/album/stats"
  * empty album renders the head plus one honest paragraph and nothing else. The
  * components keep their own guards for the half-empty cases (photos but no
  * coordinates, photos but no dates).
+ *
+ * ## Search owns the timeline's slot
+ *
+ * `PhotoSearch` receives the timeline as children and swaps it for results while
+ * something is typed, so searching never changes the URL.
  */
 export default async function PhotosPage(props: PageProps<"/[locale]/photos">) {
   const { locale: rawLocale } = await props.params
@@ -50,13 +57,15 @@ export default async function PhotosPage(props: PageProps<"/[locale]/photos">) {
             <PhotoCategories data={albumData} aggregates={aggregates} locale={locale} />
           </div>
 
-          <section aria-labelledby="photos-timeline" className="mt-14">
-            <h2 id="photos-timeline" className="eyebrow text-muted-foreground">
-              {label("timeline")}
-            </h2>
-            <div className="mt-4">
+          <section aria-label={label("timeline")} className="mt-14">
+            <PhotoSearch
+              items={toSearchItems(albumData)}
+              places={albumData.places}
+              albums={albumData.albums}
+              locale={locale}
+            >
               <PhotoTimeline data={albumData} locale={locale} />
-            </div>
+            </PhotoSearch>
           </section>
         </>
       )}
