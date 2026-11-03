@@ -7,8 +7,8 @@ import type { Localized } from "@/types/content"
  *
  * Two levels, like the reference: a category, and the entries inside it. A
  * category with no entries yet is still declared — it is a promise of what this
- * page will hold, and the menu renders it as "还没有收录" rather than hiding it,
- * so the shape of the collection is visible before it is filled.
+ * page will hold, and the menu renders it as "还没有收录" rather than hiding it, so
+ * the shape of the collection is visible before it is filled.
  *
  * ## Missing hrefs are deliberate
  *
@@ -16,13 +16,19 @@ import type { Localized } from "@/types/content"
  * not been checked yet. The menu renders those as plain text, never as a link —
  * a link that goes nowhere is worse than a label that admits it is not ready.
  *
- * Add a category or an entry by editing this file; nothing in the components
- * needs to change.
+ * ## Where the addresses came from
+ *
+ * Every `href` here was read off the published link directory at
+ * `tblog.mmzhiku.xyz/collections` rather than guessed. That site's own grouping
+ * differs from the nine categories below, so entries are filed by what they are,
+ * not by where they were found.
  */
 export interface ToolEntry {
   label: Localized<string>
-  /** Omitted until the address is verified. Text-only entries are skipped by links. */
+  /** Omitted until the address is verified. Text-only entries render as labels. */
   href?: string
+  /** The bare domain, shown under the name. Kept short on purpose. */
+  domain?: string
   /** One short line for the `/tools` page; the menu ignores it. */
   note?: Localized<string>
 }
@@ -33,27 +39,132 @@ export interface ToolCategory {
   items: ToolEntry[]
 }
 
-/** The nine categories the reference menu groups its tools into. */
 export const toolCategories: ToolCategory[] = [
   {
     id: "drawing",
-    label: { zh: "画图工具", en: "Drawing" },
-    items: [],
+    label: { zh: "画图工具", en: "Images" },
+    items: [
+      {
+        label: { zh: "抠抠图", en: "KouKouTu" },
+        href: "https://www.koukoutu.com/removebgtool/all",
+        domain: "koukoutu.com",
+        note: { zh: "一键去背景，批量处理，输出透明 PNG。", en: "One-click background removal." },
+      },
+      {
+        label: { zh: "OneImage", en: "OneImage" },
+        href: "https://oneimage.co/",
+        domain: "oneimage.co",
+        note: { zh: "压缩、裁剪、模糊、转格式，全部在浏览器里完成。", en: "Compress and convert in the browser." },
+      },
+      {
+        label: { zh: "在线图像工具箱", en: "Photo toolkit" },
+        href: "https://phototool.cn/",
+        domain: "phototool.cn",
+        note: { zh: "格式转换、压缩、裁剪与批量下载。", en: "Convert, compress, crop, batch download." },
+      },
+      {
+        label: { zh: "GIF 背景移除", en: "GIF background remover" },
+        href: "https://adworker.ai/zh/tools/gif-background-remover/",
+        domain: "adworker.ai",
+        note: { zh: "识别并去掉 GIF 动图的背景。", en: "Removes the background from animated GIFs." },
+      },
+    ],
   },
   {
     id: "dev-helper",
     label: { zh: "开发辅助工具", en: "Developer helpers" },
-    items: [],
+    items: [
+      {
+        label: { zh: "网络测速 · 中科大", en: "USTC speed test" },
+        href: "https://test.ustc.edu.cn/",
+        domain: "test.ustc.edu.cn",
+        note: { zh: "测本地带宽与网络延迟。", en: "Bandwidth and latency." },
+      },
+      {
+        label: { zh: "ITDOG 网络工具", en: "ITDOG network tools" },
+        href: "https://www.itdog.cn/",
+        domain: "itdog.cn",
+        note: { zh: "Ping、TCPing、网站测速、路由追踪、DNS 查询。", en: "Ping, TCPing, HTTP timing, traceroute, DNS." },
+      },
+      {
+        label: { zh: "Ollama", en: "Ollama" },
+        href: "https://ollama.com/",
+        domain: "ollama.com",
+        note: { zh: "本地跑开源大模型，一键部署。", en: "Run open models locally." },
+      },
+      {
+        label: { zh: "PatorJK", en: "PatorJK" },
+        href: "https://patorjk.com/",
+        domain: "patorjk.com",
+        note: { zh: "ASCII 艺术字生成器与一堆小工具。", en: "ASCII art and assorted generators." },
+      },
+    ],
   },
   {
     id: "stock",
     label: { zh: "在线素材库", en: "Stock assets" },
-    items: [],
+    items: [
+      {
+        label: { zh: "StarDots 图床", en: "StarDots hosting" },
+        href: "https://dashboard.stardots.io/?lang=zh",
+        domain: "stardots.io",
+        note: { zh: "图片托管与 CDN 加速，支持图片转换与分发。", en: "Image hosting with CDN." },
+      },
+      {
+        label: { zh: "SauceNAO", en: "SauceNAO" },
+        href: "https://saucenao.com/",
+        domain: "saucenao.com",
+        note: { zh: "以图搜图，找插画与同人图的出处。", en: "Reverse image search for illustrations." },
+      },
+    ],
   },
   {
     id: "design",
     label: { zh: "设计制作类工具", en: "Design and production" },
-    items: [],
+    items: [
+      {
+        label: { zh: "Figma", en: "Figma" },
+        href: "https://www.figma.com/",
+        domain: "figma.com",
+        note: { zh: "在线 UI/UX 设计协作。", en: "Collaborative interface design." },
+      },
+      {
+        label: { zh: "shadcn/ui", en: "shadcn/ui" },
+        href: "https://ui.shadcn.com/",
+        domain: "ui.shadcn.com",
+        note: { zh: "这个站点自己用的组件库。", en: "The component library this site is built on." },
+      },
+      {
+        label: { zh: "Magic UI", en: "Magic UI" },
+        href: "https://magicui.design/",
+        domain: "magicui.design",
+        note: { zh: "可直接复制的动效组件。", en: "Copy-paste animated components." },
+      },
+      {
+        label: { zh: "Aceternity UI", en: "Aceternity UI" },
+        href: "https://ui.aceternity.com/",
+        domain: "ui.aceternity.com",
+        note: { zh: "视觉冲击强的开源动效组件。", en: "High-impact animated components." },
+      },
+      {
+        label: { zh: "Uiverse", en: "Uiverse" },
+        href: "https://uiverse.io/",
+        domain: "uiverse.io",
+        note: { zh: "社区驱动的按钮、输入框、卡片元素库。", en: "Community UI elements." },
+      },
+      {
+        label: { zh: "CodePen", en: "CodePen" },
+        href: "https://codepen.io/",
+        domain: "codepen.io",
+        note: { zh: "实时编写与分享前端片段。", en: "Front-end snippets in the browser." },
+      },
+      {
+        label: { zh: "Awwwards", en: "Awwwards" },
+        href: "https://www.awwwards.com/",
+        domain: "awwwards.com",
+        note: { zh: "网页设计作品评选，找灵感用。", en: "Web design awards and inspiration." },
+      },
+    ],
   },
   {
     id: "writing",
@@ -112,3 +223,9 @@ export const toolCategories: ToolCategory[] = [
 
 /** Categories that actually have something to show. */
 export const filledCategories = toolCategories.filter((category) => category.items.length > 0)
+
+/** How many addresses are still missing, for the /tools page to state plainly. */
+export const pendingLinks = toolCategories.reduce(
+  (total, category) => total + category.items.filter((item) => !item.href).length,
+  0
+)
