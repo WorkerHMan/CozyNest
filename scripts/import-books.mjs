@@ -6,20 +6,22 @@
  * The folder holds commercially published books — scanned PDFs, hundreds of
  * megabytes each. Putting those in a public repository would be redistribution,
  * and git rejects the large ones anyway. So this script reads **names only** and
- * emits a catalogue: every book lands as `{ kind: "registered" }`, which is the
- * state that says "I own this, and this site cannot open it".
+ * emits a catalogue: every book lands as `{ kind: "registered" }`, the state that
+ * says "I own this, and this site cannot open it".
  *
- * Turning a book into a readable one is a separate, deliberate edit: put the PDF
- * in `public/books/`, then change that entry to
+ * Turning one into a readable book is a deliberate two-step edit: put the PDF in
+ * `public/books/`, then change that entry to
  * `{ kind: "reader", pdf: "/books/<id>.pdf" }`. Nothing does it by accident.
+ *
+ * ## Categories are guessed from the filename
+ *
+ * Blunt on purpose: first matching rule wins, and anything the rules miss goes to
+ * 其他 rather than being guessed at. Correct a shelf by hand in `books.ts`;
+ * re-running this script overwrites the file.
  *
  * ## Usage
  *
  *   node scripts/import-books.mjs "E:\Course\149本各学科入门书籍"
- *
- * Re-run after adding files; the ids are positional, so entries shift if you
- * reorder the folder. Stable ids matter more than stable positions — if you need
- * a permanent link to one book, change its id by hand and keep it.
  */
 import { readdir, writeFile } from "node:fs/promises"
 import path from "node:path"
@@ -32,6 +34,44 @@ if (!folder) {
 
 const READABLE = new Set([".pdf", ".epub"])
 
+/** Order is priority: the first rule whose keyword appears in the title wins. */
+const CATEGORY_RULES = [
+  ["计算机", ["计算机", "编程", "Python", "Java", "C++", "C语言", "算法", "数据结构", "网络", "Linux", "操作系统", "数据库", "软件", "设计模式", "Perl", "JavaScript", "前端", "代码", "Object-Oriented"]],
+  ["数学", ["数学", "代数", "几何", "微积分", "统计", "概率", "拓扑", "数论"]],
+  ["物理", ["物理", "量子", "力学", "相对论", "电磁", "热力学", "光学"]],
+  ["化学", ["化学", "分子", "有机", "元素周期"]],
+  ["生物", ["生物", "基因", "细胞", "进化", "生态", "生命科学", "遗传", "生化"]],
+  ["医学", ["医学", "外科", "解剖", "生理", "临床", "心脏", "病理", "药理", "内科"]],
+  ["心理", ["心理", "精神", "认知", "咨询", "行为"]],
+  ["经济管理", ["经济", "金融", "投资", "货币", "银行", "华尔街", "商业", "市场营销", "管理"]],
+  ["哲学", ["哲学", "伦理", "逻辑", "存在", "叔本华", "康德", "尼采"]],
+  ["历史", ["历史", "文明", "史话", "通史", "战争"]],
+  ["建筑", ["建筑", "空间", "结构", "城市", "景观", "营造"]],
+  ["艺术设计", ["设计", "艺术", "美术", "摄影", "绘画", "音乐", "字体", "色彩"]],
+  ["法律", ["法律", "法理", "宪法", "民法", "刑法"]],
+  ["语言写作", ["语言", "文学", "写作", "诗", "修辞", "翻译"]],
+  ["社科", ["社会", "人类学", "政治", "文化", "教育", "传播", "民族"]],
+]
+
+function toCategory(title) {
+  for (const [category, keywords] of CATEGORY_RULES) {
+    if (keywords.some((keyword) => title.includes(keyword))) return category
+  }
+  return "其他"
+}
+
+/** "《上帝掷骰子吗：量子物理史话》曹天元" → a title without the book marks. */
+function toTitle(filename) {
+  return filename
+    .replace(/\.[^.]+$/, "")
+    .replace(/^[[【]/, "")
+    .replace(/[\]】]$/, "")
+    .replace(/%5D/gi, "")
+    .replace(/[《》]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
 const files = (await readdir(folder, { withFileTypes: true }))
   .filter((entry) => entry.isFile())
   .filter((entry) => READABLE.has(path.extname(entry.name).toLowerCase()))
@@ -43,37 +83,24 @@ if (files.length === 0) {
   process.exit(1)
 }
 
-/** "《上帝掷骰子吗：量子物理史话》曹天元" → a title without the book marks. */
-function toTitle(filename) {
-  const base = filename.replace(/\.[^.]+$/, "")
-  return base
-    .replace(/^[\[【]/, "")
-    .replace(/[\]】]$/, "")
-    .replace(/%5D/gi, "")
-    .replace(/[《》]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-}
-
 const entries = files.map((filename, index) => {
   const id = `b${String(index + 1).padStart(3, "0")}`
-  return {
-    id,
-    title: { zh: toTitle(filename), en: toTitle(filename) },
-    // The filename is the only source of truth here, so no author is invented.
-    access: { kind: "registered" },
-    source: filename,
-  }
+  const title = toTitle(filename)
+  return { id, title, category: toCategory(title), source: filename }
 })
+
+const counts = new Map()
+for (const entry of entries) counts.set(entry.category, (counts.get(entry.category) ?? 0) + 1)
+const categories = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name)
 
 const list = entries
   .map(
     (entry) =>
       `  {\n    id: ${JSON.stringify(entry.id)},\n    title: { zh: ${JSON.stringify(
-        entry.title.zh
-      )}, en: ${JSON.stringify(entry.title.en)} },\n    access: { kind: "registered" },\n    source: ${JSON.stringify(
-        entry.source
-      )},\n  },`
+        entry.title
+      )}, en: ${JSON.stringify(entry.title)} },\n    category: ${JSON.stringify(
+        entry.category
+      )},\n    access: { kind: "registered" },\n    source: ${JSON.stringify(entry.source)},\n  },`
   )
   .join("\n")
 
@@ -87,21 +114,20 @@ const source = `import type { Localized } from "@/types/content"
  * Three states, and only one of them can carry a file. Modelling this as a union
  * means \`pdf\` cannot exist on a book that is not readable, and a book with no
  * \`access\` at all cannot be constructed — the compiler enforces the rule that
- * matters most here: **nothing becomes readable by accident**.
+ * matters most: **nothing becomes readable by accident**.
  *
  * - \`reader\` — a PDF of this site's own, opened in \`/books/<id>\`
  * - \`external\` — leaves the site for somewhere the address is legitimate
  * - \`registered\` — copyright or no file: the catalogue knows it, and cannot open it
  *
- * ## Every entry below is \`registered\`
+ * ## Every entry is \`registered\`
  *
  * The source folder holds commercially published books, so their files are not in
- * this repository at all — only their names are. To make one readable: put the PDF
- * in \`public/books/\` and change its entry to
- * \`{ kind: "reader", pdf: "/books/<id>.pdf" }\`.
+ * this repository — only names. To make one readable: put the PDF in
+ * \`public/books/\` and change its entry to \`{ kind: "reader", pdf: "/books/<id>.pdf" }\`.
  *
- * \`source\` is the original filename, kept so you can find the file on disk. It is
- * never rendered and never served.
+ * \`source\` is the original filename, for finding the file on disk. It is never
+ * rendered and never served.
  */
 export type BookAccess =
   | { kind: "reader"; pdf: string }
@@ -112,11 +138,10 @@ export interface Book {
   id: string
   title: Localized<string>
   author?: string
-  /** \`YYYY\` of the edition read, not of writing. Optional: often unknown. */
+  /** Shelf grouping. Guessed from the filename, correctable by hand. */
+  category: string
   year?: string
-  /** Cover image path, if there is one. The shelf draws a spine when there is not. */
   cover?: string
-  /** One line of your own. The only opinion on the page. */
   note?: Localized<string>
   access: BookAccess
   /** Original filename on disk. Never rendered, never served. */
@@ -127,8 +152,12 @@ export const books: readonly Book[] = [
 ${list}
 ]
 
+/** Category order for the shelf: the fullest shelf first. */
+export const bookCategories: readonly string[] = ${JSON.stringify(categories)}
+
 export const readableCount = books.filter((book) => book.access.kind === "reader").length
 `
 
 await writeFile("src/data/books.ts", source, "utf8")
-console.log(`wrote ${entries.length} books to src/data/books.ts (all registered, no files copied)`)
+console.log(`wrote ${entries.length} books in ${categories.length} categories (all registered, no files copied)`)
+console.log(categories.map((name) => `${name}: ${counts.get(name)}`).join(" · "))

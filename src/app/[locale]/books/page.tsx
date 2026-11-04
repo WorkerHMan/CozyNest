@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { Container } from "@/components/layout/container"
-import { books, type Book } from "@/data/books"
+import { bookCategories, books, type Book } from "@/data/books"
 import { defaultLocale, isLocale } from "@/i18n"
 import { cn } from "@/lib/utils"
 
@@ -91,13 +91,35 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
           </p>
         </div>
       ) : (
-        <ul role="list" className="mt-12 flex flex-wrap gap-x-3 gap-y-8 border-t border-border-strong/40 pt-8">
-          {books.map((book) => (
-            <li key={book.id}>
-              <Spine book={book} locale={locale} />
-            </li>
-          ))}
-        </ul>
+        <div className="mt-12 flex flex-col gap-12 border-t border-border-strong/40 pt-8">
+          {bookCategories.map((category) => {
+            const shelf = books.filter((book) => book.category === category)
+            return (
+              <section key={category} aria-labelledby={`shelf-${category}`}>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border/60 pb-2">
+                  <h2 id={`shelf-${category}`} className="font-heading text-base font-semibold tracking-tight">
+                    {category}
+                  </h2>
+                  <p className="font-mono text-[0.6875rem] text-muted-foreground tabular-nums">
+                    {shelf.length} {locale === "zh" ? "本" : "books"}
+                  </p>
+                </div>
+                {/* The row sits on a hairline, so the spines read as standing on a
+                    shelf rather than floating in a grid. */}
+                <ul
+                  role="list"
+                  className="mt-4 flex flex-wrap items-end gap-x-3 border-b-2 border-border-strong/40 pb-1"
+                >
+                  {shelf.map((book) => (
+                    <li key={book.id}>
+                      <Spine book={book} locale={locale} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )
+          })}
+        </div>
       )}
     </Container>
   )
