@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs"
+import path from "node:path"
+
 import Link from "next/link"
 
 import { Container } from "@/components/layout/container"
@@ -37,7 +40,15 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
   const { locale: rawLocale } = await props.params
   const locale = isLocale(rawLocale) ? rawLocale : defaultLocale
 
-  const readable = books.filter((book) => book.access.kind === "reader").length
+  // Which books this build can actually open. Presence on disk, not a licence
+  // claim: the files live in git-ignored `public/books`, so a local build opens
+  // them and a deployed build has nothing to serve.
+  const availableIds = new Set(
+    books
+      .filter((book) => existsSync(path.join("public", "books", book.category, `${book.id}.pdf`)))
+      .map((book) => book.id)
+  )
+  const readable = availableIds.size
   const external = books.filter((book) => book.access.kind === "external").length
   const registered = books.length - readable - external
 
@@ -112,7 +123,7 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
                 >
                   {shelf.map((book) => (
                     <li key={book.id}>
-                      <Spine book={book} locale={locale} />
+                      <Spine book={book} locale={locale} available={availableIds.has(book.id)} />
                     </li>
                   ))}
                 </ul>
@@ -126,10 +137,12 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
 }
 
 /** One book, standing up. A card would be a row of rectangles; a spine is a shelf. */
-function Spine({ book, locale }: { book: Book; locale: "zh" | "en" }) {
+function Spine({ book, locale, available }: { book: Book; locale: "zh" | "en"; available: boolean }) {
   const hue = spineHue(book.id)
   const title = book.title[locale]
-  const kind = book.access.kind
+  // A file on this machine beats any claim in the data, so the shelf opens what
+  // it actually has and nothing else.
+  const kind = available ? "reader" : book.access.kind
 
   const body = (
     <>
@@ -176,7 +189,7 @@ function Spine({ book, locale }: { book: Book; locale: "zh" | "en" }) {
         : `${title} (opens in a new tab)`
       : title
 
-  if (kind === "external") {
+  if (book.access.kind === "external") {
     return (
       <a
         href={book.access.href}
