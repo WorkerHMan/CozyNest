@@ -47,3 +47,8 @@ next-env.d.ts
 /shots/
 /probe*.mjs
 /shoot.mjs
+
+# The book files themselves. These are published works: keeping them out of the
+# repository is the point, and `next start` serves them from disk locally without
+# them ever being committed. The manifest names every book, so it is ignored too.
+/public/books/
