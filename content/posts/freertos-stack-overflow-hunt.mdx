@@ -1,0 +1,44 @@
+---
+title:
+  zh: "FreeRTOS 栈溢出：从上电就挂到定位"
+  en: "FreeRTOS stack overflow: from boot-time crash to root cause"
+summary:
+  zh: "现象是随机 HardFault，位置每次都不同。开了栈溢出检查之后，问题从「玄学」变成了「某个任务把栈用超了」。"
+  en: "Random HardFaults at different addresses. Turning on the overflow check turned superstition into a measurable number."
+category:
+  zh: "FreeRTOS"
+  en: "FreeRTOS"
+topic: freertos
+publishedAt: "2025-11-15"
+readingMinutes: 10
+tags: ["FreeRTOS", "栈", "调试"]
+cover: "/hero/winter-snow.webp"
+---
+
+## 先把玄学变成数字
+
+```c
+#define configCHECK_FOR_STACK_OVERFLOW 2
+#define configUSE_MALLOC_FAILED_HOOK 1
+
+void vApplicationStackOverflowHook(TaskHandle_t task, char *name) {
+    (void)task;
+    // 断在这里，name 就是越界的任务
+    taskDISABLE_INTERRUPTS();
+    for (;;) { }
+}
+```
+
+模式 2 会在切换上下文时检查栈指针附近的填充字节是否被改写，比模式 1（只比较栈指针）可靠，代价是每次切换多几条指令。定位阶段值得。
+
+## 高水位不是峰值
+
+uxTaskGetStackHighWaterMark 返回的是历史最小剩余量，单位是字而不是字节。它有用，但只在「最坏路径都跑过」之后才有意义。上电十分钟就看，会得到一个过于乐观的数字。
+
+- printf 系列函数吃栈很凶，几百字节起步。把日志从任务里挪到独立的低优先级任务。
+- 中断嵌套会在被中断任务的栈上继续增长，最坏情况是「所有中断同时来」。
+- 局部大数组应该改静态或堆分配，别指望任务栈能装下。
+
+## 这次的原因
+
+一个处理 Modbus 的任务里有个 256 字节的接收缓冲，加上解析函数的几层调用，峰值超过配置的 512 字。改法是缓冲移到静态区，任务栈反而可以降下来。

@@ -1,0 +1,49 @@
+---
+title:
+  zh: "Linux 驱动调试工作流：从 dmesg 到 ftrace"
+  en: "A Linux driver debugging workflow: from dmesg to ftrace"
+summary:
+  zh: "把 dmesg、动态调试、ftrace 与 perf 串成一条可复用的排查链路，覆盖加载失败与性能问题。"
+  en: "Chaining dmesg, dynamic debug, ftrace and perf into one reusable workflow that covers both load failures and performance issues."
+category:
+  zh: "Linux"
+  en: "Linux"
+topic: linux
+publishedAt: "2025-12-21"
+readingMinutes: 15
+tags: ["Linux", "驱动", "ftrace"]
+cover: "/hero/rooftop-berries.webp"
+featured: true
+---
+
+驱动出问题分两类：加载不起来，和跑起来不对。前者的证据在 dmesg，后者的证据在 ftrace 与 perf，两条链路其实可以串成一套固定动作。
+
+## 第一层：它到底说了什么
+
+```bash
+dmesg -w
+# 或带上时间戳与级别
+dmesg --time-format=iso -H
+```
+
+加载失败基本都能在这里看到：probe 返回的错误码、资源冲突、compatible 不匹配。注意错误码是"谁返回的"，而不是"谁打印的"。
+
+## 第二层：让它自己多说话
+
+```bash
+# 打开某个源的动态调试
+# echo 'file my_driver.c +p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+## 第三层：看时间去哪了
+
+```bash
+cd /sys/kernel/debug/tracing
+echo function_graph > current_tracer
+echo my_ioctl > set_graph_function
+cat trace_pipe
+```
+
+- function_graph 适合看调用层级与每段的耗时，缺点是本身有开销。
+- 想抓长尾延迟，用 perf 或 tracepoint，别用全量 ftrace。
+- 抓完立刻 echo nop > current_tracer，忘了关会一直拖慢系统。

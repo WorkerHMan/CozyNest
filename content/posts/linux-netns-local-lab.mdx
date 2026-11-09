@@ -1,0 +1,49 @@
+---
+title:
+  zh: "用网络命名空间搭一套本地联调环境"
+  en: "A local test lab built from network namespaces"
+summary:
+  zh: "想测断网、丢包、延迟翻倍，不用两台机器也不用 root 权限的虚拟机。两个命名空间加一对 veth 就够了。"
+  en: "Testing disconnects, loss and doubled latency does not need two machines. Two namespaces and a veth pair are enough."
+category:
+  zh: "Linux"
+  en: "Linux"
+topic: linux
+publishedAt: "2025-11-02"
+readingMinutes: 12
+tags: ["Linux", "网络命名空间", "联调"]
+cover: "/hero/dusk-lake.webp"
+---
+
+## 为什么不用虚拟机
+
+虚拟机启停几十秒，改一次参数要等一次开机。命名空间是内核里的一层隔离，建立和销毁都是毫秒级，而且不占额外内存。测网络异常时，改回来的成本决定了你愿不愿意多测几种情况。
+
+## 最小拓扑
+
+```bash
+ip netns add client
+ip netns add server
+ip link add veth0 type veth peer name veth1
+ip link set veth0 netns client
+ip link set veth1 netns server
+
+ip -n client addr add 10.0.0.1/24 dev veth0
+ip -n server addr add 10.0.0.2/24 dev veth1
+ip -n client link set veth0 up
+ip -n server link set veth1 up
+ip -n client link set lo up
+
+ip netns exec client ping -c1 10.0.0.2
+```
+
+## 开始制造问题
+
+- 延迟：tc qdisc add dev veth0 root netem delay 200ms
+- 丢包：tc qdisc change dev veth0 root netem loss 5%
+- 断网：ip -n client link set veth0 down，恢复只要 up
+- 带宽：tc qdisc change dev veth0 root tbf rate 1mbit burst 32kbit latency 400ms
+
+这套东西的价值在于可重复：把上面几行写成脚本，每次回归测试都从干净状态开始。手工在真机上拔网线，永远没法做到一致。
+
+> 能被脚本重建的环境，才值得在上面做实验。命名空间让「重建」的成本降到毫秒级。

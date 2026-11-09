@@ -1,0 +1,40 @@
+---
+title:
+  zh: "STM32 时钟树配置的三个常见错误"
+  en: "Three common STM32 clock tree mistakes"
+summary:
+  zh: "外设不工作、串口波特率对不上、定时器周期差一倍——这些症状往往都指向同一处：时钟源选错或分频器算错。"
+  en: "A peripheral that stays silent, a baud rate that is wrong by a factor, a timer that runs at double speed: most of these trace back to one wrong clock."
+category:
+  zh: "STM32"
+  en: "STM32"
+topic: stm32
+publishedAt: "2025-12-10"
+readingMinutes: 9
+tags: ["STM32", "时钟", "HAL"]
+cover: "/hero/cartoon-goats.webp"
+---
+
+## 错误一：外设时钟没使能
+
+HAL 的初始化函数不会替你打开 RCC 时钟。寄存器写进去没有任何效果，读回来还是 0，看起来像「芯片坏了」。养成在 MX_XXX_Init 之前检查 __HAL_RCC_XXX_CLK_ENABLE 的习惯。
+
+## 错误二：串口时钟源搞混
+
+USART2 挂在 APB1，USART1 挂在 APB2，两者分频可以不同。波特率算错一倍的情况，八成是把外设挂的总线记错了。用 HAL_RCC_GetPCLK1Freq 之类的接口现算，不要抄别人的常量。
+
+```c
+// 不要写死 72000000，直接问 HAL 当前是多少
+uint32_t pclk = HAL_RCC_GetPCLK1Freq();
+huart2.Init.BaudRate = 115200;
+// HAL 内部用 pclk 推算 BRR，前提是你把 huart2 的时钟源设对
+__HAL_RCC_USART2_CLK_ENABLE();
+```
+
+## 错误三：定时器时钟被 ×2
+
+APB 预分频不为 1 时，定时器时钟是 APB 时钟的两倍。这是手册里的一行小字，但会让所有定时器周期差一倍。要算精确延时，从 RCC 的 D2PPRE1 位开始算，别从中断现象反推。
+
+- 先在 SystemClock_Config 之后打印一遍各总线频率，确认和你以为的一致。
+- 外设不响应时，第一件事是查时钟使能，第二件事是查引脚复用。
+- 改时钟树之后重新生成一遍定时器初始化，别只改 PLL 倍数。

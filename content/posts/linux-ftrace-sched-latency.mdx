@@ -1,0 +1,47 @@
+---
+title:
+  zh: "用 ftrace 抓一次调度延迟"
+  en: "Chasing scheduler latency with ftrace"
+summary:
+  zh: "服务偶发超时，perf 看不出来。用 ftrace 的 sched_switch 单独看「谁把线程挤下去了」，一次就定位到了那个每 100ms 醒一次的后台任务。"
+  en: "An occasional timeout that perf could not explain. ftrace's sched_switch showed which thread was preempting it: a 100ms background task."
+category:
+  zh: "Linux"
+  en: "Linux"
+topic: linux
+publishedAt: "2026-01-04"
+readingMinutes: 13
+tags: ["Linux", "ftrace", "调度"]
+cover: "/hero/anime-sleep.webp"
+featured: true
+---
+
+## 先排除最常见的两种
+
+超时先看两件事：是不是等锁，是不是等 IO。virsh 或者 /proc/pressure 能给出大致方向，但都答不了「这 8 毫秒里 CPU 在干嘛」。这个问题只有调度事件能回答。
+
+## 打开 sched_switch
+
+```bash
+cd /sys/kernel/debug/tracing
+echo 0 > tracing_on
+echo > trace
+echo 1 > events/sched/sched_switch/enable
+echo 1 > tracing_on
+# 复现一次超时
+sleep 10
+echo 0 > tracing_on
+cat trace | grep -E 'myapp|kworker' | head -50
+```
+
+输出里每一行都能看到「谁被换下、谁被换上、被换下的原因」。如果 myapp 频繁因为 preempted 被换出，说明有更高优先级的任务在抢；如果是 wakeup 说明它自己在等东西。
+
+## 这次的原因
+
+trace 里每 100 毫秒出现一次 kworker，正好落在超时的时间点上。追下去是一个 driver 的轮询定时器：它本身只跑几十微秒，但会关抢占，把 myapp 的实时线程压住。
+
+- 结论不是「驱动有 bug」，而是「这个线程需要更低的最坏延迟」，所以改用 SCHED_FIFO 加绑核。
+- 关抢占区间用 preemptirqsoff 的 tracer 可以直接测出最长一段，比自己数 trace 快。
+- tracing 缓冲区默认很小，事件一多会覆盖。先设 buffer_size_kb 再抓。
+
+> 延迟问题的难点从来不是测不出来，而是不知道该测什么。调度事件把「这 8 毫秒去哪了」变成一条能读的时间线。

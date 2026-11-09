@@ -1,0 +1,51 @@
+---
+title:
+  zh: "STM32 用 DMA 加空闲中断收变长帧"
+  en: "Receiving variable-length frames on STM32 with DMA and the idle interrupt"
+summary:
+  zh: "逐字节中断在 115200 下每 87 微秒打断一次 CPU。换成人人都知道的 DMA 加空闲中断，再补上三个只有实测才会暴露的坑。"
+  en: "Byte-by-byte interrupts cost a wake-up every 87µs. The DMA plus idle-line interrupt pattern is well known; the three failure modes around it are not."
+category:
+  zh: "STM32"
+  en: "STM32"
+topic: stm32
+publishedAt: "2026-02-08"
+readingMinutes: 12
+tags: ["STM32", "DMA", "串口", "实测"]
+cover: "/hero/dusk-lake.webp"
+featured: true
+---
+
+## 问题出在中断频率
+
+115200 波特率下每字节约 87 微秒。用 HAL_UART_Receive_IT 逐字节收，主循环只要有一段时间关中断超过 87 微秒，就会丢字节。这不是理论值：一次 memcpy 加上 Flash 写等待就能吞掉这个数量级。
+
+DMA 循环模式把搬运交给硬件，CPU 只在整帧结束时被叫醒一次。难点是「整帧结束」怎么知道：协议里没有长度字段，也没有固定结束符。空闲中断（IDLE）就是为这个场景准备的——总线连续一个字符时间没有新数据，硬件置位 IDLE 标志。
+
+## 配置
+
+```c
+// 环形 DMA，接收长度给满
+HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rx_buf, sizeof(rx_buf));
+__HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);  // 关掉半传输中断
+
+// 回调里拿到的 Size 就是「到空闲为止已收到的字节数」
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    ring_push(rx_buf, Size);
+    // 环形缓冲要按 Size 重新装载，否则下一次从错的位置开始
+    HAL_UARTEx_ReceiveToIdle_DMA(huart, rx_buf, sizeof(rx_buf));
+}
+```
+
+## 三个只有实测才会暴露的坑
+
+- 半传输中断默认是开的。DMA 收到缓冲区一半时会触发 HT 回调，如果没关掉，一帧会被拆成两次上报，解析器看到半截数据。
+- 回调里必须重新装载 DMA。不重新调用 ReceiveToIdle_DMA，第二次接收不会启动，现象是「只收到第一帧」。
+- 空闲中断只在总线真的静下来时才来。如果两帧之间没有间隙（连续流），永远等不到 IDLE，要在协议里加长度或定期超时兜底。
+
+## 什么时候不该用这套
+
+数据是连续流、帧间无间隔的场景（比如某些传感器持续推流），IDLE 不会触发。这时应该用「固定长度 DMA 加双缓冲」，或者在协议层加长度前缀，让解析器自己切帧。工具要匹配协议，不是反过来。
+
+> 中断频率和波特率成正比。把 87 微秒换算成你能容忍的最长关中断时间，就知道该不该上 DMA 了。

@@ -1,0 +1,57 @@
+---
+title:
+  zh: "用 RAII 包住 C 库句柄"
+  en: "Wrapping C handles in RAII"
+summary:
+  zh: "C 库的 open/close 配对靠人记，一旦走到错误分支就会漏。用移动语义加析构函数把它们变成编译器负责的事。"
+  en: "Pairing open/close by hand breaks on the first error branch. Move semantics plus a destructor hand the job to the compiler."
+category:
+  zh: "C / C++"
+  en: "C / C++"
+topic: cpp
+publishedAt: "2026-01-15"
+readingMinutes: 10
+tags: ["C++", "RAII", "资源管理"]
+cover: "/hero/winter-snow.webp"
+---
+
+## 漏关闭通常发生在错误分支
+
+一个函数里 open 之后有三处可能提前 return，而 close 只在最后一行。这种代码在正常路径上永远不会出错，只在设备忙、参数非法这类分支上泄漏——也就是最难复现的那一半场景。
+
+## 最小可用的包装
+
+```cpp
+class Fd {
+public:
+    explicit Fd(int fd = -1) noexcept : fd_(fd) {}
+    ~Fd() { if (fd_ >= 0) ::close(fd_); }
+
+    Fd(const Fd&) = delete;
+    Fd& operator=(const Fd&) = delete;
+
+    Fd(Fd&& other) noexcept : fd_(std::exchange(other.fd_, -1)) {}
+    Fd& operator=(Fd&& other) noexcept {
+        if (this != &other) {
+            if (fd_ >= 0) ::close(fd_);
+            fd_ = std::exchange(other.fd_, -1);
+        }
+        return *this;
+    }
+
+    int get() const noexcept { return fd_; }
+    bool valid() const noexcept { return fd_ >= 0; }
+private:
+    int fd_;
+};
+```
+
+关键的三处：拷贝构造删除（两个对象管一个句柄必然双重释放）；移动后把源句柄置为 -1（否则源对象析构时会关掉已经转移的句柄）；析构里判 -1（默认构造和移动后的对象都需要是安全的）。
+
+## 常见错误
+
+- 移动构造里忘了把源置空，程序在作用域结束时随机关掉一个还在用的 fd。
+- 加了拷贝但用引用计数，结果比直接删除拷贝更慢也更容易错——fd 是独占资源，不该共享。
+- 析构函数抛异常。析构默认 noexcept，抛就是 terminate，所以清理逻辑不能失败也不能报错。
+
+这套写法对 C 库句柄是通用的：把 close 换成对应的释放函数，把 -1 换成库里的非法值，其余一模一样。文件、socket、设备、动态库句柄都适用。

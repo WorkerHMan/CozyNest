@@ -1,0 +1,39 @@
+---
+title:
+  zh: "在边缘设备上收敛一条 OpenCV 处理流水线"
+  en: "Tightening an OpenCV pipeline on an edge device"
+summary:
+  zh: "从分辨率、色彩空间与内存拷贝三个方向入手，把单帧处理耗时压到原来的三分之一。"
+  en: "Attacking resolution, colour space and memory copies to cut per-frame latency to a third of the original."
+category:
+  zh: "计算机视觉"
+  en: "Computer vision"
+topic: vision
+publishedAt: "2025-12-02"
+readingMinutes: 11
+tags: ["OpenCV", "性能", "边缘计算"]
+cover: "/hero/anime-profile.webp"
+featured: true
+---
+
+同一套算法在笔记本上跑 30fps，到板子上只剩 8fps。真正吃时间的往往不是算法本身，而是算法前后那些"顺手"的转换与拷贝。
+
+## 先量，再改
+
+给每一段单独计时，别信整体帧率：分辨率缩放、色彩空间转换、copyTo、以及最后的上采样经常各自就吃掉几毫秒。
+
+## 三个最有效的动作
+
+- 降分辨率：先在原图做检测，再回到原图裁出感兴趣区域，而不是把整帧缩小后处理。
+- 减少色彩空间往返：整条链路尽量只进一次 BGR→Gray 或 BGR→RGB，中间不要再转回来。
+- 干掉隐式拷贝：用 ROI 视图代替裁剪复制，注意 ROI 不是连续的，传给某些函数前仍需一次 copy。
+
+```cpp
+// 不用先缩放整帧，直接取子区域
+cv::Mat roi = frame(cv::Rect(x, y, w, h));
+// 需要连续内存时再显式复制一次
+cv::Mat contiguous;
+roi.copyTo(contiguous);
+```
+
+> 边缘设备上的性能优化，八成是在减少数据搬运，而不是换算法。

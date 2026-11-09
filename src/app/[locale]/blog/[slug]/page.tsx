@@ -2,7 +2,7 @@ import { ArrowLeft, CalendarDays, Clock, Tag } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { PostBody } from "@/features/blog/post-body"
+import { PostBody, PostToc } from "@/features/blog/post-body"
 import { Container } from "@/components/layout/container"
 import { blogLabels } from "@/config/blog-labels"
 import { getTopic } from "@/config/topics"
@@ -13,6 +13,7 @@ import {
   getArticleBySlug,
 } from "@/data/posts"
 import { defaultLocale, isLocale, locales } from "@/i18n"
+import { slugifyHeadings } from "@/lib/mdx"
 import { cn } from "@/lib/utils"
 
 const focusRing =
@@ -27,6 +28,15 @@ export function generateStaticParams() {
   return locales.flatMap((locale) => slugs.map((slug) => ({ locale, slug })))
 }
 
+/**
+ * Compiling MDX counts as request-time work to Next 16's prerender validator —
+ * it cannot prove the await resolves before the first byte. There is nothing to
+ * stream here: the body is the page, and a reader would only see a spinner where
+ * the article should be. So this route declares itself blocking, which is what
+ * the validator's `[block]` option is for.
+ */
+export const instant = false
+
 export default async function ArticlePage(props: PageProps<"/[locale]/blog/[slug]">) {
   const { locale: rawLocale, slug } = await props.params
   const locale = isLocale(rawLocale) ? rawLocale : defaultLocale
@@ -36,6 +46,9 @@ export default async function ArticlePage(props: PageProps<"/[locale]/blog/[slug
 
   const topic = getTopic(article.topic)
   const label = (key: keyof typeof blogLabels) => blogLabels[key][locale]
+  // Computed from the MDX source with the same slugger `rehype-slug` uses, so
+  // every link lands on the heading it names.
+  const toc = article.body ? slugifyHeadings(article.body) : []
 
   return (
     <Container className="py-16 sm:py-20">
@@ -50,7 +63,8 @@ export default async function ArticlePage(props: PageProps<"/[locale]/blog/[slug
         {label("backToList")}
       </Link>
 
-      <article className="mt-8 max-w-2xl">
+      <div className="mt-8 xl:grid xl:grid-cols-[minmax(0,42rem)_14rem] xl:items-start xl:gap-12">
+        <article className="max-w-2xl min-w-0">
         <header>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
@@ -92,9 +106,11 @@ export default async function ArticlePage(props: PageProps<"/[locale]/blog/[slug
           </ul>
         </header>
 
+        <PostToc entries={toc} label={label("toc")} variant="inline" />
+
         <div className="mt-10">
-          {article.body?.length ? (
-            <PostBody blocks={article.body} />
+          {article.body ? (
+            <PostBody source={article.body} />
           ) : (
             <p className="text-sm text-muted-foreground">{label("bodyMissing")}</p>
           )}
@@ -108,6 +124,9 @@ export default async function ArticlePage(props: PageProps<"/[locale]/blog/[slug
           </p>
         ) : null}
       </article>
+
+        <PostToc entries={toc} label={label("toc")} variant="sidebar" />
+      </div>
     </Container>
   )
 }

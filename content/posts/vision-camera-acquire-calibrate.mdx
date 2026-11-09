@@ -1,0 +1,46 @@
+---
+title:
+  zh: "从取图到标定：一条能跑通的相机链路"
+  en: "From capture to calibration: a camera pipeline that holds up"
+summary:
+  zh: "取图、去畸变、标定不是三个独立步骤，顺序错了误差会一路放大。这里记录一条在产线上验证过的链路和每一步的验收标准。"
+  en: "Capture, undistort and calibrate are not independent steps; get the order wrong and the error compounds. A pipeline that survived a production line, with an acceptance check per step."
+category:
+  zh: "计算机视觉"
+  en: "Computer vision"
+topic: vision
+publishedAt: "2025-12-22"
+readingMinutes: 14
+tags: ["相机标定", "OpenCV", "重投影误差"]
+cover: "/hero/anime-profile.webp"
+---
+
+## 顺序
+
+正确的顺序是：原始图 → 标定得到内参与畸变系数 → 去畸变 → 用去畸变后的图做测量。反过来先手工修图再标定，等于把修图的形变一起标进了内参里，之后所有测量都带着它。
+
+## 取图这一步的验收
+
+标定之前先确认图本身是稳定的：同一场景连拍 100 张，平均灰度波动应在 1% 以内，棋盘格边缘不应有拖影。自动曝光开启时这个条件基本不可能满足，所以要先把曝光锁死。
+
+```python
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+objp = np.zeros((6 * 9, 3), np.float32)
+objp[:, :2] = np.mgrid[0:9, 0:6].T.reshape(-1, 2)
+
+rms, K, dist, rvecs, tvecs = cv2.calibrateCamera(
+    obj_points, img_points, gray.shape[::-1], None, None
+)
+print("RMS reprojection error:", rms)
+assert rms < 0.3, "标定不合格，别往下做"
+```
+
+## 验收标准
+
+- 重投影误差 RMS < 0.3 像素。超过 0.5 说明姿态覆盖不够或棋盘格没贴平，不要靠增加图片数量糊过去。
+- 姿态要覆盖画面四角和中心。只拍正面的板子，畸变系数是拟合不出来的。
+- 标定板占画面 1/3 以上。太小的话角点提取的亚像素误差会被放大。
+
+最后一步常被忽略：标定完要拿一张独立图片做交叉验证，把已知尺寸的物体测一遍，看实际误差是否在公差内。RMS 只是拟合残差，不等于测量精度。
+
+> RMS 小说明模型拟合得好，不说明你的测量准。这两件事必须分别验证。

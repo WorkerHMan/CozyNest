@@ -1,0 +1,47 @@
+---
+title:
+  zh: "编译期查表：把运行时分支挪到编译期"
+  en: "Compile-time tables instead of runtime branches"
+summary:
+  zh: "一张 256 项的查表在运行时只是一次内存访问。用 constexpr 生成，能把分支预测失败和缓存未命中一起省掉。"
+  en: "A 256-entry table is one memory read at runtime. Generated with constexpr, it removes the branch misprediction along with the branch."
+category:
+  zh: "C / C++"
+  en: "C / C++"
+topic: cpp
+publishedAt: "2025-11-28"
+readingMinutes: 11
+tags: ["C++", "模板", "编译期"]
+cover: "/hero/rooftop-berries.webp"
+---
+
+## 先看代价
+
+一个对每个字节做分支的解析循环，在数据随机时分支预测命中率接近 0，每次误预测大约 15 个周期。256 次访问就是几千个周期，比查表本身贵两个数量级。
+
+## constexpr 生成
+
+```cpp
+struct Table {
+    unsigned char v[256];
+    constexpr Table() : v{} {
+        for (int i = 0; i < 256; ++i) {
+            v[i] = static_cast<unsigned char>((i >= 'a' && i <= 'z') ? i - 32 : i);
+        }
+    }
+};
+
+constexpr Table kUpper{};
+// 编译期就算好了，运行时只是数组下标
+char up(char c) { return static_cast<char>(kUpper.v[static_cast<unsigned char>(c)]); }
+```
+
+关键是 constexpr 构造函数在编译期执行，表直接落在只读数据段。运行时没有初始化代码，也没有分支。同样的模式可以生成 CRC 表、sin 表、状态机转移表。
+
+## 什么时候不值得
+
+- 表太大导致 cache 压力上升，反而更慢。256 项的字节表很轻，65536 项就要重新算。
+- 分支本身可预测时查表没优势，编译器可能已经把它变成了条件传送。
+- 可读性也是成本。表生成逻辑要留注释说明它等价于哪个 if，否则半年后没人敢改。
+
+> 查表不是优化技巧，是把「判断」换成「寻址」。用之前先确认你付得起那次内存访问。

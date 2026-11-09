@@ -3,20 +3,6 @@ import type { Locale } from "@/i18n/config"
 /** A value that exists in every supported language. */
 export type Localized<T> = Record<Locale, T>
 
-/**
- * One block of article body.
- *
- * Bodies are blocks rather than Markdown strings: the project has no MDX pipeline
- * yet, and a block list keeps authoring dependency-free while staying swappable —
- * when Markdown support lands, only the renderer changes, not the content.
- */
-export type ArticleBlock =
-  | { kind: "p"; text: string }
-  | { kind: "h"; text: string }
-  | { kind: "ul"; items: readonly string[] }
-  | { kind: "code"; lang?: string; code: string }
-  | { kind: "quote"; text: string }
-
 export interface Article {
   slug: string
   title: Localized<string>
@@ -37,8 +23,14 @@ export interface Article {
    * real photography until purpose-made covers exist.
    */
   cover?: string
-  /** Absent while a stub is published but its body is not written yet. */
-  body?: readonly ArticleBlock[]
+  /**
+   * The article body as MDX source, straight from `content/posts/<slug>.mdx`.
+   *
+   * It is source, not HTML: rendering happens in `PostBody`, at build time. Absent
+   * while a stub is published but its body is not written yet — which is different
+   * from a body that renders to nothing.
+   */
+  body?: string
 }
 
 export interface Project {

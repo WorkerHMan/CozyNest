@@ -1,0 +1,50 @@
+---
+title:
+  zh: "FreeRTOS 里该用队列还是信号量"
+  en: "Choosing a queue over a semaphore in FreeRTOS"
+summary:
+  zh: "两者底层都是队列，选错的代价是后期为了传一个状态而到处加静态变量。判断标准只有一条：你要传的是「发生了」还是「值」。"
+  en: "Both are queues underneath. The cost of choosing wrong is a pile of static variables later. The test is whether you are publishing an event or a value."
+category:
+  zh: "FreeRTOS"
+  en: "FreeRTOS"
+topic: freertos
+publishedAt: "2026-01-27"
+readingMinutes: 9
+tags: ["FreeRTOS", "队列", "同步"]
+cover: "/hero/rooftop-berries.webp"
+---
+
+## 一条判断标准
+
+信号量说的是「某件事发生了」，它不携带内容，也不排队：连发十次二值信号量，接收方也只醒一次。队列说的是「这是第 N 个值」，每个值都占一个槽位，按顺序取。
+
+所以只要你想传的东西有内容（一个 ADC 读数、一个按键码、一帧长度），就该是队列。用信号量加一个全局变量，等于自己实现了一个容量为 1 且会丢数据的队列。
+
+## 一个重构过程
+
+```c
+// 之前：信号量 + 全局变量
+static volatile uint16_t g_adc;
+xSemaphoreGiveFromISR(adc_sem, &woken);
+
+// 之后：队列，容量按最坏情况给
+QueueHandle_t adc_q = xQueueCreate(8, sizeof(uint16_t));
+xQueueSendFromISR(adc_q, &sample, &woken);
+
+// 消费端一次取一个，自然限流
+uint16_t value;
+while (xQueueReceive(adc_q, &value, pdMS_TO_TICKS(100)) == pdTRUE) {
+    process(value);
+}
+```
+
+换成队列后顺手解决了两个问题：ISR 里连发的数据不会再丢（容量 8 吸收突发）；消费端能用「取空为止」的循环代替一次处理一个，吞吐量上去了。
+
+## 容量不是随便写的
+
+- 生产者最快频率 × 消费者最坏延迟 = 至少需要的槽位。算出来是 3 就给 8，留突发余量。
+- 队列项是拷贝，不是引用。传结构体时队列会复制整块内存，大结构体应该传指针，并自己管生命周期。
+- FromISR 版本必须用 FromISR 的 API，混用普通版本会在断言里挂掉。
+
+> 队列的容量是一个设计参数，不是一个「填个 10 就行」的占位值。容量就是你能容忍的突发长度。

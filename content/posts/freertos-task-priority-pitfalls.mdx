@@ -1,0 +1,39 @@
+---
+title:
+  zh: "FreeRTOS 任务优先级的几个常见坑"
+  en: "Common FreeRTOS task-priority pitfalls"
+summary:
+  zh: "优先级反转、阻塞式延时与栈溢出：如何用运行时统计与栈水位把问题定位到具体任务。"
+  en: "Priority inversion, blocking delays and stack overflow: using run-time stats and stack high-water marks to pin the problem to a task."
+category:
+  zh: "FreeRTOS"
+  en: "FreeRTOS"
+topic: freertos
+publishedAt: "2026-01-09"
+readingMinutes: 9
+tags: ["FreeRTOS", "RTOS", "调试"]
+cover: "/hero/winter-snow.webp"
+featured: true
+---
+
+实时系统出的问题，症状几乎总在高优先级任务那边，根因却常常在低优先级那边。下面三个坑我踩过不止一次。
+
+## 一、用 vTaskDelay 当同步手段
+
+轮询等待一个标志位时顺手写个 vTaskDelay(10)，看上去把 CPU 让出去了，实际上把响应延迟和轮询周期焊死在一起：事件在第 9 毫秒到达，你也要等到第 10 毫秒。用二值信号量或任务通知，事件到了立刻唤醒。
+
+## 二、优先级高于临界区的假设不成立
+
+关中断或持锁期间，高优先级任务不是"先跑"，而是"一起排队"。如果临界区里还有阻塞调用，优先级反转就变成死等的另一种写法。临界区要短，且里面不能有会阻塞的东西。
+
+## 三、栈溢出报警前就把栈踩了
+
+xPortGetFreeHeapSize 看的是堆，任务栈要看 uxTaskGetStackHighWaterMark：它返回的是历史最低剩余量。留 20% 是经验值，不是保证——浮点、printf 家族与递归都会在最坏路径上多要不少。
+
+```c
+UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
+if (high < configMINIMAL_STACK_SIZE / 4) {
+    // 栈水位过低，先记录下来再决定是否降级
+```
+
+> 排查顺序建议：先开运行时统计看谁占 CPU，再看栈水位看谁快爆，最后才去读代码找逻辑。

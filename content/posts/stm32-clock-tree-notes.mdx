@@ -1,0 +1,47 @@
+---
+title:
+  zh: "STM32 时钟树梳理：从 HSE 到外设时钟"
+  en: "STM32 clock tree, end to end: from HSE to peripheral clocks"
+summary:
+  zh: "整理 PLL 倍频、AHB/APB 分频与外设时钟使能的关系，并给出一份可直接对照的配置检查表。"
+  en: "How PLL multiplication, AHB/APB prescalers and peripheral clock enables relate, with a checklist you can follow while configuring."
+category:
+  zh: "STM32"
+  en: "STM32"
+topic: stm32
+publishedAt: "2026-01-18"
+readingMinutes: 12
+tags: ["STM32", "时钟", "HAL"]
+cover: "/hero/dusk-lake.webp"
+featured: true
+---
+
+拿到一块新板子，第一件事往往是把时钟配到能跑、跑得对。时钟树之所以让人头大，是因为它有三层彼此牵制的分频与倍频，改一处就会顺着树往上或往下影响一整片外设。
+
+## 三层结构
+
+- 振荡源层：HSE 外部晶振、HSI 内部 RC，决定基准精度。
+- PLL 层：把基准倍频到 SYSCLK，受 VCO 输入/输出范围限制。
+- 总线层：AHB、APB1、APB2 各自分频，并决定定时器时钟是否再翻倍。
+
+## 一次完整的推导
+
+以 8MHz 外部晶振、目标 168MHz 为例：先把 HSE 分频到 1MHz 再倍频到 336MHz 作为 VCO 输出，最后除 2 得到 168MHz。之所以要中间那一步分频，是为了把 VCO 输入压在数据手册要求的一到两兆之间，否则 PLL 会锁不住。
+
+```c
+RCC_OscInitTypeDef osc = {0};
+osc.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+osc.HSEState = RCC_HSE_ON;
+osc.PLL.PLLM = 8;   // 8MHz / 8  = 1MHz
+osc.PLL.PLLN = 336; // 1MHz * 336 = 336MHz
+osc.PLL.PLLP = 2;   // 336 / 2  = 168MHz
+```
+
+## 检查表
+
+- 确认 VCO 输入与输出都在手册范围内，而不是只看最终 SYSCLK。
+- APB1 有上限（常见 42MHz），超了会让挂在它下面的外设行为异常而不是报错。
+- 定时器时钟在 APB 分频不为 1 时会自动翻倍，算波特率与 PWM 时别漏掉。
+- 改完时钟后重新核对 Flash 等待周期，频率上去而等待周期没跟上会读到错数据。
+
+> 时钟树的坑大多不是配错，而是配对了却没跟着改下游：Flash 等待周期、外设重初始化、以及那些默认时钟源没切换的模块。

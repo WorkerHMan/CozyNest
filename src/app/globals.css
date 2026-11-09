@@ -276,3 +276,116 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* Syntax highlighting, resolved in CSS.
+   highlight.js emits semantic classes (`hljs-keyword`, `hljs-string`, …) and the
+   palette below maps them twice: GitHub's light tones by default, GitHub Dimmed's
+   dark tones under `.dark`. One prerendered HTML serves both themes, so switching
+   costs a repaint rather than a rebuild. */
+:root {
+  --code-keyword: #cf222e;
+  --code-string: #0a3069;
+  --code-comment: #6e7781;
+  --code-number: #0550ae;
+  --code-title: #8250df;
+  --code-builtin: #953800;
+  --code-name: #116329;
+}
+
+.dark {
+  --code-keyword: #f47067;
+  --code-string: #96d0ff;
+  --code-comment: #768390;
+  --code-number: #6cb6ff;
+  --code-title: #dcbdfb;
+  --code-builtin: #f69d50;
+  --code-name: #8ddb8c;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-doctag,
+.hljs-formula {
+  color: var(--code-keyword);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-meta .hljs-string {
+  color: var(--code-string);
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-attr,
+.hljs-template-variable,
+.hljs-variable,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: var(--code-number);
+}
+
+.hljs-title,
+.hljs-title.function_,
+.hljs-title.class_,
+.hljs-section {
+  color: var(--code-title);
+}
+
+.hljs-built_in,
+.hljs-type,
+.hljs-class .hljs-title,
+.hljs-params {
+  color: var(--code-builtin);
+}
+
+.hljs-name,
+.hljs-tag,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: var(--code-name);
+}
+
+.hljs-meta {
+  color: var(--code-comment);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 600;
+}
+
+/* The anchor `rehype-autolink-headings` appends to every h2/h3. Invisible until
+   the heading is hovered or the link is focused, so it never competes with the
+   text it belongs to — but keyboard users get it on tab. */
+.heading-anchor {
+  margin-left: 0.375rem;
+  text-decoration: none;
+}
+
+.heading-anchor::after {
+  content: "#";
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+h2:hover .heading-anchor::after,
+h3:hover .heading-anchor::after,
+.heading-anchor:focus-visible::after {
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heading-anchor::after {
+    transition: none;
+  }
+}

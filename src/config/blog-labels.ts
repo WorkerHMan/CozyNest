@@ -34,6 +34,7 @@ export const blogLabels = {
     en: "This article is written in Chinese.",
   },
   notFoundTitle: { zh: "找不到这篇文章", en: "Article not found" },
+  toc: { zh: "本页目录", en: "On this page" },
   topicEyebrow: { zh: "技术点", en: "Topic" },
   tagEyebrow: { zh: "标签", en: "Tag" },
   archiveTitle: { zh: "归档", en: "Archive" },
