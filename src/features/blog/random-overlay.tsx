@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 
-import { RandomStage, type StageItem } from "@/components/blog/random-stage"
+import { RandomStage, type StageItem } from "@/features/blog/random-stage"
 import type { Locale } from "@/i18n"
 import { cn } from "@/lib/utils"
 

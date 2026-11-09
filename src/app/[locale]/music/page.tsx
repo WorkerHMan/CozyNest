@@ -1,4 +1,4 @@
-import { MusicPagePlayer } from "@/components/music/music-page-player"
+import { MusicPagePlayer } from "@/features/music/music-page-player"
 import { defaultLocale, isLocale } from "@/i18n"
 
 /**

@@ -1,4 +1,4 @@
-import { PostCard } from "@/components/blog/post-card"
+import { PostCard } from "@/features/blog/post-card"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Container } from "@/components/layout/container"
-import { SectionHeading } from "@/components/home/section-heading"
+import { SectionHeading } from "@/features/home/section-heading"
 import { formatArticleDate, getFeaturedArticles } from "@/data/posts"
 import type { Dictionary, Locale } from "@/i18n"
 

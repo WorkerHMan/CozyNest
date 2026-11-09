@@ -2,7 +2,7 @@ import { ArrowLeft, CalendarDays, Clock, Tag } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { PostBody } from "@/components/blog/post-body"
+import { PostBody } from "@/features/blog/post-body"
 import { Container } from "@/components/layout/container"
 import { blogLabels } from "@/config/blog-labels"
 import { getTopic } from "@/config/topics"

@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { HideMascot } from "@/components/common/hide-mascot"
+import { HideMascot } from "@/components/shared/hide-mascot"
 import { Container } from "@/components/layout/container"
-import { PhotoWall } from "@/components/photos/photo-wall"
+import { PhotoWall } from "@/features/photos/photo-wall"
 import { photosLabels } from "@/config/photos-labels"
 import { albumData } from "@/data/album"
 import { defaultLocale, isLocale } from "@/i18n"

@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-import { ContributionGrid } from "@/components/blog/contribution-grid"
+import { ContributionGrid } from "@/features/blog/contribution-grid"
 import { Container } from "@/components/layout/container"
 import { blogLabels } from "@/config/blog-labels"
 import { formatArticleDate, getArchiveByYear } from "@/data/posts"

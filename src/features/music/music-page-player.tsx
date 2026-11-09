@@ -3,7 +3,7 @@
 import { ChevronDown, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react"
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react"
 
-import { AudioVisualizer } from "@/components/music/audio-visualizer"
+import { AudioVisualizer } from "@/features/music/audio-visualizer"
 import { heroPlayer } from "@/config/hero-player"
 import type { Locale } from "@/i18n"
 import {

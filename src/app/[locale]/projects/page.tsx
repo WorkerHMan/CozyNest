@@ -1,4 +1,4 @@
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PlaceholderPage } from "@/components/shared/placeholder-page"
 import { defaultLocale, getDictionary, isLocale } from "@/i18n"
 
 export default async function ProjectsPage(

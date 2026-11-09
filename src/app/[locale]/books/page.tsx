@@ -3,7 +3,7 @@ import path from "node:path"
 
 import Link from "next/link"
 
-import { HideMascot } from "@/components/common/hide-mascot"
+import { HideMascot } from "@/components/shared/hide-mascot"
 import { Container } from "@/components/layout/container"
 import { bookCategories, books, type Book } from "@/data/books"
 import { defaultLocale, isLocale } from "@/i18n"

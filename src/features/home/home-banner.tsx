@@ -11,7 +11,7 @@ import {
   type FocusEvent,
   type KeyboardEvent,
 } from "react"
-import { CoverMusicControls } from "@/components/music/cover-music-controls"
+import { CoverMusicControls } from "@/features/music/cover-music-controls"
 import {
   getServerSnapshot as getSettingsServerSnapshot,
   getSnapshot as getSettingsSnapshot,

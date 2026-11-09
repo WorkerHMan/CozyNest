@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { Container } from "@/components/layout/container"
-import { PostCard } from "@/components/blog/post-card"
+import { PostCard } from "@/features/blog/post-card"
 import { blogLabels } from "@/config/blog-labels"
 import { getTopic, topics } from "@/config/topics"
 import { getAllArticles, getArchiveByYear, getTopicCounts } from "@/data/posts"

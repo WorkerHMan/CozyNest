@@ -2,7 +2,7 @@ import { Cpu, Eye, Layers, Radio, Terminal } from "lucide-react"
 import type { ComponentType } from "react"
 import { Container } from "@/components/layout/container"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { SectionHeading } from "@/components/home/section-heading"
+import { SectionHeading } from "@/features/home/section-heading"
 import type { Dictionary } from "@/i18n"
 
 type DirectionKey = keyof Dictionary["home"]["directions"]["items"]

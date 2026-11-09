@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp, Pause, Play } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useState, useSyncExternalStore } from "react"
 
-import { MusicController } from "@/components/music/music-controller"
+import { MusicController } from "@/features/music/music-controller"
 import type { Locale } from "@/i18n"
 import {
   getServerSnapshot,

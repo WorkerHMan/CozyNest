@@ -1,9 +1,9 @@
-import { FeaturedPosts } from "@/components/home/featured-posts"
-import { FeaturedProjects } from "@/components/home/featured-projects"
-import { Hero } from "@/components/home/hero"
-import { HomeBanner } from "@/components/home/home-banner"
-import { TechDirections } from "@/components/home/tech-directions"
-import { YearProgress } from "@/components/home/year-progress"
+import { FeaturedPosts } from "@/features/home/featured-posts"
+import { FeaturedProjects } from "@/features/home/featured-projects"
+import { Hero } from "@/features/home/hero"
+import { HomeBanner } from "@/features/home/home-banner"
+import { TechDirections } from "@/features/home/tech-directions"
+import { YearProgress } from "@/features/home/year-progress"
 import { defaultLocale, getDictionary, isLocale } from "@/i18n"
 
 /**

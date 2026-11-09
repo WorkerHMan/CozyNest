@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
 
-import { PaimonFigure, PaimonSilhouette } from "@/components/paimon/paimon-figure"
-import { PaimonQuickMenu, useAutoDismiss } from "@/components/paimon/paimon-quick-menu"
+import { PaimonFigure, PaimonSilhouette } from "@/features/paimon/paimon-figure"
+import { PaimonQuickMenu, useAutoDismiss } from "@/features/paimon/paimon-quick-menu"
 import { paimon } from "@/config/paimon"
 import type { Locale } from "@/i18n"
 import {

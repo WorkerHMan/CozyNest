@@ -1,5 +1,5 @@
 import { Container } from "@/components/layout/container"
-import { RandomStage } from "@/components/blog/random-stage"
+import { RandomStage } from "@/features/blog/random-stage"
 import { articles, formatArticleDate } from "@/data/posts"
 import { defaultLocale, isLocale } from "@/i18n"
 import { getTopic } from "@/config/topics"
