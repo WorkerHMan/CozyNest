@@ -3,6 +3,7 @@ import path from "node:path"
 
 import Link from "next/link"
 
+import { HideMascot } from "@/components/common/hide-mascot"
 import { Container } from "@/components/layout/container"
 import { bookCategories, books, type Book } from "@/data/books"
 import { defaultLocale, isLocale } from "@/i18n"
@@ -11,49 +12,85 @@ import { cn } from "@/lib/utils"
 const focusRing =
   "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 
-/** Deterministic spine colour, so a shelf looks like a shelf and not a gradient. */
-function spineHue(id: string): number {
-  let hue = 210
-  for (const char of id) hue = (hue * 31 + char.charCodeAt(0)) % 360
-  return hue
+/** Four spine heights, so a row is a shelf and not a bar chart. */
+const HEIGHTS = ["h-52", "h-56", "h-60", "h-64"] as const
+
+/** Deterministic hash, so a given book keeps its look across builds. */
+function hashOf(id: string): number {
+  let hash = 2166
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) % 100000
+  return hash
 }
 
 /**
- * 书籍 — a shelf, not a card grid.
+ * A spine's look: two tones of one hue, mostly quiet.
  *
- * ## Why a different shape from /photos and /tools
+ * Real shelves are furniture with books on them, not a colour wheel. So most
+ * spines sit at low chroma — the muted olive, brown and slate of actual bindings —
+ * and one in nine is allowed to be saturated. That single rule is what stops 61
+ * spines from looking like a swatch test.
+ */
+function spineStyle(id: string): { background: string; texture: string } {
+  const hue = hashOf(id) % 360
+  const loud = hashOf(id) % 9 === 0
+  const chroma = loud ? 0.13 : 0.045
+  const top = 0.46 + (hashOf(id) % 5) * 0.02
+  const bottom = top - 0.09
+
+  return {
+    background: `linear-gradient(178deg, oklch(${top} ${chroma} ${hue}) 0%, oklch(${bottom} ${chroma} ${
+      (hue + 22) % 360
+    }) 100%)`,
+    texture:
+      "repeating-linear-gradient(90deg, rgba(255,255,255,0.055) 0 1px, rgba(0,0,0,0.045) 1px 3px)",
+  }
+}
+
+/**
+ * 书籍 — a shelf of spines.
  *
- * Those two answer "what have I got" with cards, because every item is a picture
- * or a link of equal weight. Books are physical objects: they stand upright, they
- * are identified by their spines, and the pleasure of a shelf is seeing them side
- * by side. So each book is a narrow vertical spine with its title running down
- * it, and hovering pulls it out of the row — the one gesture everybody already
- * knows from a real shelf.
+ * ## Why a shelf and not a card grid
  *
- * ## The three states, without colour carrying the meaning
+ * The photo and tool pages answer "what have I got" with cards, because every item
+ * there is a picture or a link of equal weight. Books are objects: they stand up,
+ * they are identified by their spine, and a row of them reads as a collection.
  *
- * A readable book is a link that lifts and carries 「读」; an external one opens a
- * new tab and carries an arrow; a registered one does not lift, is not pressable,
- * and carries a lock. The difference is structural first and chromatic second.
+ * ## Covers do the talking on hover
+ *
+ * Page one of each PDF is rendered to a cover at build time (git-ignored, like the
+ * PDFs). The shelf stays spines — mixing cover cards with drawn spines in one row
+ * looks like a bug, not a design — but hovering a spine slides out a card with the
+ * actual cover, so the shelf never hides what it has.
+ *
+ * ## The three states
+ *
+ * A readable book is a link, leans out and shows its cover; an external one opens
+ * a new tab; a registered one cannot be pressed. Structure first, colour second.
  */
 export default async function BooksPage(props: PageProps<"/[locale]/books">) {
   const { locale: rawLocale } = await props.params
   const locale = isLocale(rawLocale) ? rawLocale : defaultLocale
 
-  // Which books this build can actually open. Presence on disk, not a licence
-  // claim: the files live in git-ignored `public/books`, so a local build opens
-  // them and a deployed build has nothing to serve.
+  // Availability is a fact about this machine, read from disk, not a claim in the
+  // data: the files are git-ignored, so a local build opens them and a deployed
+  // build simply has nothing to serve.
   const availableIds = new Set(
     books
       .filter((book) => existsSync(path.join("public", "books", book.category, `${book.id}.pdf`)))
       .map((book) => book.id)
   )
+  const coverIds = new Set(
+    books.filter((book) => existsSync(path.join("public", "books", "covers", `${book.id}.webp`))).map((book) => book.id)
+  )
+
   const readable = availableIds.size
   const external = books.filter((book) => book.access.kind === "external").length
   const registered = books.length - readable - external
 
   return (
     <Container className="py-16 sm:py-20">
+      <HideMascot />
+
       <header className="max-w-2xl">
         <p className="eyebrow text-brand">{locale === "zh" ? "书架" : "Shelf"}</p>
         <h1 className="font-heading mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
@@ -61,8 +98,8 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
         </h1>
         <p className="mt-4 text-base leading-relaxed text-pretty text-muted-foreground">
           {locale === "zh"
-            ? "柜子里的书。能在这里读的会说明能读，只在柜子里的就只有书脊。"
-            : "What is on the shelf. The ones readable here say so; the rest are spines and nothing more."}
+            ? "柜子里的书，按学科排。能在这里读的点得开，只在柜子里的就只有书脊。"
+            : "The shelf, arranged by subject. The ones readable here open; the rest are spines and nothing more."}
         </p>
 
         {books.length > 0 ? (
@@ -74,7 +111,7 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
             <span aria-hidden className="text-border">·</span>
             <div className="flex items-baseline gap-1.5">
               <dd className="text-sm font-semibold text-foreground tabular-nums">{readable}</dd>
-              <dt>{locale === "zh" ? "可读" : "readable"}</dt>
+              <dt>{locale === "zh" ? "本机可读" : "readable here"}</dt>
             </div>
             <span aria-hidden className="text-border">·</span>
             <div className="flex items-baseline gap-1.5">
@@ -95,14 +132,9 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
           <p className="font-heading text-lg font-semibold">
             {locale === "zh" ? "架子还空着。" : "The shelf is empty."}
           </p>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-pretty text-muted-foreground">
-            {locale === "zh"
-              ? "第一本书进来之前，这里不放示例书脊——书架上摆假书，比空着更难看。"
-              : "No sample spines before the first real book. A shelf of invented titles looks worse than an empty one."}
-          </p>
         </div>
       ) : (
-        <div className="mt-12 flex flex-col gap-12 border-t border-border-strong/40 pt-8">
+        <div className="mt-12 flex flex-col gap-14">
           {bookCategories.map((category) => {
             const shelf = books.filter((book) => book.category === category)
             return (
@@ -115,15 +147,19 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
                     {shelf.length} {locale === "zh" ? "本" : "books"}
                   </p>
                 </div>
-                {/* The row sits on a hairline, so the spines read as standing on a
-                    shelf rather than floating in a grid. */}
+                {/* `items-end` + a thick bottom border: the spines stand on it. */}
                 <ul
                   role="list"
-                  className="mt-4 flex flex-wrap items-end gap-x-3 border-b-2 border-border-strong/40 pb-1"
+                  className="mt-5 flex flex-wrap items-end gap-x-2.5 border-b-[3px] border-border-strong/50 pb-0"
                 >
                   {shelf.map((book) => (
                     <li key={book.id}>
-                      <Spine book={book} locale={locale} available={availableIds.has(book.id)} />
+                      <Spine
+                        book={book}
+                        locale={locale}
+                        available={availableIds.has(book.id)}
+                        hasCover={coverIds.has(book.id)}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -136,58 +172,83 @@ export default async function BooksPage(props: PageProps<"/[locale]/books">) {
   )
 }
 
-/** One book, standing up. A card would be a row of rectangles; a spine is a shelf. */
-function Spine({ book, locale, available }: { book: Book; locale: "zh" | "en"; available: boolean }) {
-  const hue = spineHue(book.id)
+/** One book, standing on the shelf, with its cover waiting on hover. */
+function Spine({
+  book,
+  locale,
+  available,
+  hasCover,
+}: {
+  book: Book
+  locale: "zh" | "en"
+  available: boolean
+  hasCover: boolean
+}) {
+  const hash = hashOf(book.id)
+  const { background, texture } = spineStyle(book.id)
   const title = book.title[locale]
-  // A file on this machine beats any claim in the data, so the shelf opens what
-  // it actually has and nothing else.
+  const height = HEIGHTS[hash % HEIGHTS.length]
   const kind = available ? "reader" : book.access.kind
 
-  const body = (
-    <>
-      <span
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-px bg-white/40"
-        style={{ opacity: kind === "registered" ? 0.2 : 0.5 }}
-      />
-      <span className="font-heading flex-1 [writing-mode:vertical-rl] text-[0.8125rem] font-medium leading-tight tracking-tight">
+  const cover = hasCover ? (
+    <img
+      src={`/books/covers/${book.id}.webp`}
+      alt=""
+      loading="lazy"
+      className="h-full w-full object-cover"
+    />
+  ) : null
+
+  const spine = (
+    <span className="relative block h-full w-full overflow-hidden rounded-[3px]" style={{ background }}>
+      {/* Cloth grain: a 1px repeating overlay, which is what separates "coloured
+          bar" from "bound book" at this size. */}
+      <span aria-hidden className="absolute inset-0" style={{ backgroundImage: texture }} />
+      {/* A raised band near the head and tail, like the boards of a hardback. */}
+      <span aria-hidden className="absolute inset-x-0 top-2 h-px bg-white/25" />
+      <span aria-hidden className="absolute inset-x-0 bottom-2 h-px bg-black/25" />
+      <span className="font-heading absolute inset-0 flex items-center justify-center px-2 py-4 [writing-mode:vertical-rl] text-[0.8125rem] font-medium leading-tight tracking-tight text-white/90">
         {title}
       </span>
-      <span aria-hidden className="mt-2 shrink-0 font-mono text-[0.5625rem] opacity-70">
-        {kind === "external" ? "↗" : kind === "registered" ? "—" : locale === "zh" ? "读" : "read"}
-      </span>
-    </>
+    </span>
   )
 
-  const frame =
-    "relative flex h-56 w-11 flex-col items-center justify-center rounded-sm px-2 py-3"
+  const frame = cn(
+    // `hover:z-30` matters: the lift below uses `transform`, which creates a
+    // stacking context, so a z-index inside would stay trapped under the
+    // neighbouring spines. The spine itself has to come forward.
+    "group/book relative z-0 block w-11 self-end hover:z-30 focus-within:z-30",
+    height,
+    kind === "registered" ? "cursor-default opacity-70" : "transition-transform duration-200 motion-safe:hover:-translate-y-2"
+  )
 
-  // Registered: not pressable, does not lift, and says why in its title.
+  const preview = (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute top-full left-1/2 z-30 mt-2 hidden w-40 -translate-x-1/2 overflow-hidden rounded-lg border border-border-strong/60 bg-background shadow-xl shadow-black/25 group-hover/book:block group-focus-visible/book:block"
+    >
+      {cover ? (
+        <img src={`/books/covers/${book.id}.webp`} alt="" loading="lazy" className="aspect-[2/3] w-full object-cover" />
+      ) : (
+        <span className="grid aspect-[2/3] w-full place-items-center bg-muted/40 px-2 text-center text-[0.625rem] text-muted-foreground">
+          {locale === "zh" ? "没有封面" : "No cover"}
+        </span>
+      )}
+      <span className="block border-t border-border/60 px-2 py-1.5">
+        <span className="block truncate text-[0.6875rem] font-medium">{title}</span>
+        <span className="block truncate font-mono text-[0.625rem] text-muted-foreground">{book.category}</span>
+      </span>
+    </span>
+  )
+
   if (kind === "registered") {
     return (
-      <div
-        className={cn(frame, "border border-border-strong/50 text-muted-foreground")}
-        style={{ background: `oklch(0.42 0.02 ${hue})` }}
-        title={locale === "zh" ? `${title} · 仅登记，无法打开` : `${title} · registered, cannot open`}
-      >
-        {body}
-      </div>
+      <span className={frame} title={`${title} · ${locale === "zh" ? "仅登记，无法打开" : "registered, cannot open"}`}>
+        {spine}
+        {preview}
+      </span>
     )
   }
-
-  const surface = cn(
-    frame,
-    "text-white transition-transform duration-200 motion-safe:hover:-translate-y-1.5",
-    focusRing
-  )
-  const style = { background: `oklch(0.52 0.11 ${hue})` }
-  const label =
-    kind === "external"
-      ? locale === "zh"
-        ? `${title}（在新标签页打开）`
-        : `${title} (opens in a new tab)`
-      : title
 
   if (book.access.kind === "external") {
     return (
@@ -195,18 +256,19 @@ function Spine({ book, locale, available }: { book: Book; locale: "zh" | "en"; a
         href={book.access.href}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={label}
-        className={surface}
-        style={style}
+        aria-label={`${title}${locale === "zh" ? "（在新标签页打开）" : " (opens in a new tab)"}`}
+        className={cn(frame, focusRing)}
       >
-        {body}
+        {spine}
+        {preview}
       </a>
     )
   }
 
   return (
-    <Link href={`/books/${book.id}`} aria-label={label} className={surface} style={style}>
-      {body}
+    <Link href={`/books/${book.id}`} aria-label={title} className={cn(frame, focusRing)}>
+      {spine}
+      {preview}
     </Link>
   )
 }
